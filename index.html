@@ -3,148 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Cobranças 2.0</title>
+    <title>Gaby Cobranças 3.0</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <style>
-        .card-saldo-devedor { border-left: 5px solid #dc3545; background-color: #fff5f5; }
-        .card-saldo-positivo { border-left: 5px solid #198754; background-color: #f0fff4; }
-        .btn-floating { position: fixed; bottom: 20px; right: 20px; z-index: 100; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; }
-        .valor-devendo { color: #dc3545; font-weight: bold; font-size: 1.2rem; }
-        .valor-credito { color: #198754; font-weight: bold; font-size: 1.2rem; }
+        /* Estilo para parecer App */
+        body { background-color: #f0f2f5; padding-bottom: 80px; }
+        .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; } /* Rosa Gaby */
+        .nav-pills .nav-link { color: #555; background: white; margin: 0 5px; border: 1px solid #ddd; }
+        .card-devedor { border-left: 6px solid #dc3545; }
+        .card-credito { border-left: 6px solid #198754; }
+        .saldo-negativo { color: #dc3545; font-weight: 800; font-size: 1.2rem; }
+        .saldo-positivo { color: #198754; font-weight: 800; font-size: 1.2rem; }
+        .btn-vender { background-color: #d63384; border: none; color: white; }
+        .btn-vender:hover { background-color: #a82363; color: white; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-dark bg-dark mb-3">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">🍬 Gaby Cobranças</span>
-        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#modalConfig">
-            ⚙️ Ajustes
-        </button>
-    </div>
-</nav>
-
-<div class="container">
-    <div class="row g-2 mb-3">
-        <div class="col-8">
-            <select id="filtroSetor" class="form-select shadow-sm" onchange="carregarClientes()">
-                <option value="">🏠 Todos os Setores</option>
-                <option value="IGREJA">⛪ Igreja</option>
-                <option value="ROLETE">🏭 Rolete</option>
-                <option value="TABATA">🏭 Tabata</option>
-                <option value="ANDERSON">🏭 Anderson</option>
-                <option value="BIANCA">🏭 Bianca</option>
-                <option value="RUA">🛣️ Rua / Outros</option>
-            </select>
-        </div>
-        <div class="col-4">
-            <input type="text" id="buscaNome" class="form-control shadow-sm" placeholder="Buscar..." onkeyup="carregarClientes()">
-        </div>
-    </div>
-
-    <div id="listaClientes" class="row pb-5">
-        <div class="text-center mt-5 text-muted">Carregando sistema...</div>
-    </div>
+<div class="container mt-3">
+    <h3 class="text-center mb-3 text-secondary">🍬 Gaby Cobranças</h3>
+    <ul class="nav nav-pills nav-fill mb-4" id="meuMenu" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-inicio">🏠 <br>Início</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cliente">👤 <br>Novo Cliente</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-produtos">📦 <br>Produtos</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ <br>Importar</button>
+        </li>
+    </ul>
 </div>
 
-<button class="btn btn-primary btn-floating shadow" data-bs-toggle="modal" data-bs-target="#modalNovoCliente">
-    <i class="bi bi-person-plus-fill"></i>
-</button>
+<div class="tab-content container">
 
-<div class="modal fade" id="modalNovoCliente" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Novo Cliente</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <input type="text" id="nomeCliente" class="form-control mb-2" placeholder="Nome Completo">
-                <input type="text" id="telCliente" class="form-control mb-2" placeholder="Telefone (Zap)">
-                <select id="setorCliente" class="form-select mb-2">
+    <div class="tab-pane fade show active" id="tab-inicio">
+        <div class="row g-2 mb-3">
+            <div class="col-7">
+                <select id="filtroSetor" class="form-select shadow-sm" onchange="carregarClientes()">
+                    <option value="">Todos os Setores</option>
+                    <option value="IGREJA">⛪ Igreja</option>
+                    <option value="ROLETE">🏭 Rolete</option>
+                    <option value="TABATA">🏭 Tabata</option>
+                    <option value="ANDERSON">🏭 Anderson</option>
+                    <option value="BIANCA">🏭 Bianca</option>
+                    <option value="RUA">🛣️ Rua / Outros</option>
+                </select>
+            </div>
+            <div class="col-5">
+                <input type="text" id="buscaNome" class="form-control shadow-sm" placeholder="Buscar nome..." onkeyup="carregarClientes()">
+            </div>
+        </div>
+
+        <div id="listaClientes" class="row">
+            <div class="text-center mt-5 text-muted">
+                <div class="spinner-border text-danger"></div>
+                <p>Carregando sistema...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-cliente">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white fw-bold">Novo Cadastro</div>
+            <div class="card-body">
+                <label>Nome Completo:</label>
+                <input type="text" id="novoNome" class="form-control mb-3" placeholder="Ex: Maria da Silva">
+                
+                <label>Setor:</label>
+                <select id="novoSetor" class="form-select mb-3">
                     <option value="IGREJA">Igreja</option>
                     <option value="ROLETE">Rolete</option>
                     <option value="TABATA">Tabata</option>
                     <option value="ANDERSON">Anderson</option>
                     <option value="BIANCA">Bianca</option>
-                    <option value="RUA">Rua</option>
+                    <option value="RUA">Rua/Outros</option>
                 </select>
+
+                <label>Telefone:</label>
+                <input type="text" id="novoTel" class="form-control mb-3" placeholder="(16) 99999-9999">
+
+                <button class="btn btn-success w-100 p-3" onclick="salvarNovoCliente()">✅ Salvar Cliente</button>
             </div>
-            <div class="modal-footer"><button class="btn btn-primary w-100" onclick="salvarCliente()">Salvar</button></div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-produtos">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-white fw-bold">Adicionar Produto</div>
+            <div class="card-body">
+                <div class="input-group">
+                    <input type="text" id="prodNome" class="form-control" placeholder="Nome (Ex: Trufa)">
+                    <input type="number" id="prodPreco" class="form-control" placeholder="R$ (Ex: 6.00)">
+                    <button class="btn btn-primary" onclick="addProduto()">+</button>
+                </div>
+            </div>
+        </div>
+        
+        <h6>Seus Produtos:</h6>
+        <ul id="listaProdutosCfg" class="list-group shadow-sm">
+            <li class="list-group-item text-muted">Carregando...</li>
+        </ul>
+    </div>
+
+    <div class="tab-pane fade" id="tab-config">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning fw-bold">📥 Importar Excel</div>
+            <div class="card-body">
+                <p class="small text-muted">Selecione seu arquivo do Excel (.xlsx) para cadastrar todos os clientes e dívidas automaticamente.</p>
+                <input type="file" id="arquivoExcel" class="form-control mb-3" accept=".xlsx, .xls">
+                <button class="btn btn-dark w-100" onclick="processarExcel()">Ler Planilha e Cadastrar</button>
+                <div id="statusImport" class="mt-3 fw-bold text-primary"></div>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <small class="text-muted">ID do Projeto: gaby-cobrancas</small>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalMovimento" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="tituloMovimento">Lançamento</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="tituloMovimento">...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <input type="hidden" id="idClienteMov">
                 <input type="hidden" id="tipoMov">
                 
-                <div id="areaProdutos" class="d-none bg-light p-2 rounded border mb-3">
-                    <label class="fw-bold mb-1">🛒 Escolha o Produto:</label>
-                    <select id="selectProduto" class="form-select mb-2" onchange="atualizarTotalVenda()">
-                        </select>
-                    <div class="row">
-                        <div class="col-6">
-                            <label>Quantidade:</label>
-                            <input type="number" id="qtdProduto" class="form-control" value="1" min="1" onchange="atualizarTotalVenda()">
-                        </div>
-                        <div class="col-6">
-                            <label>Total Item:</label>
-                            <input type="text" id="totalItemPreview" class="form-control fw-bold" disabled>
-                        </div>
+                <div id="boxProduto" class="mb-3 p-2 border rounded bg-light">
+                    <label class="small fw-bold text-muted">🛒 PRODUTO RÁPIDO</label>
+                    <div class="input-group mb-2">
+                        <select id="selectProduto" class="form-select" onchange="calcTotal()"></select>
+                        <input type="number" id="qtdProduto" class="form-control" value="1" min="1" style="max-width: 70px;" onchange="calcTotal()">
                     </div>
                 </div>
 
                 <label>Descrição:</label>
-                <input type="text" id="descMov" class="form-control mb-2" placeholder="Ex: Pagamento Pix ou Venda Avulsa">
-                
-                <label class="fw-bold">Valor Total (R$):</label>
-                <input type="number" id="valorMov" class="form-control mb-3 fs-5" step="0.01">
-                
+                <input type="text" id="descMov" class="form-control mb-2" placeholder="O que é?">
+
+                <label class="fw-bold">VALOR (R$):</label>
+                <input type="number" id="valorMov" class="form-control mb-3 p-3 fs-4" step="0.01">
+
                 <input type="date" id="dataMov" class="form-control">
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success w-100 py-2" onclick="salvarMovimentacao()">✅ CONFIRMAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalConfig" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Configurações</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <h6>📦 Cadastrar Seus Produtos</h6>
-                <div class="input-group mb-3">
-                    <input type="text" id="prodNome" class="form-control" placeholder="Ex: Bolo de Pote">
-                    <input type="number" id="prodPreco" class="form-control" placeholder="Preço (Ex: 10.00)">
-                    <button class="btn btn-outline-primary" onclick="addProduto()">Adicionar</button>
-                </div>
-                <ul id="listaProdutosCfg" class="list-group mb-4 small"></ul>
-
-                <hr>
-                <h6>📂 Importar Planilha (CSV)</h6>
-                <div class="alert alert-info small">
-                    Use o arquivo que você baixou. O sistema vai cadastrar todos os clientes e já colocar quem está devendo.
-                </div>
-                <input type="file" id="arquivoCSV" class="form-control mb-2" accept=".csv">
-                <button class="btn btn-warning w-100" onclick="processarCSV()">📥 Importar Agora</button>
-                <div id="statusImport" class="mt-2 text-primary fw-bold small"></div>
+                <button class="btn btn-success w-100 btn-lg" onclick="confirmarMovimento()">CONFIRMAR</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalExtrato" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Histórico / Extrato</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h5 class="modal-title">Extrato</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body p-0">
-                <table class="table table-striped mb-0" style="font-size: 0.9rem;">
-                    <thead class="table-dark"><tr><th>Data</th><th>O que foi?</th><th>Valor</th></tr></thead>
+                <table class="table table-striped mb-0">
+                    <thead class="table-dark"><tr><th>Data</th><th>Desc.</th><th>R$</th></tr></thead>
                     <tbody id="tabelaExtrato"></tbody>
                 </table>
             </div>
@@ -153,14 +176,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <script type="module">
-  // Usando versão estável compatível com seu código
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // --- SUAS CHAVES DO FIREBASE (JÁ CONFIGURADAS) ---
+  // SUAS CHAVES (JÁ CONFIGURADAS)
   const firebaseConfig = {
     apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
     authDomain: "gabydoces-d0cd1.firebaseapp.com",
@@ -173,302 +195,271 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let PRODUTOS_CACHE = [];
-
-  // --- INICIALIZAÇÃO ---
-  window.onload = async () => {
-      carregarProdutos();
+  // --- INICIALIZAR ---
+  window.onload = () => {
       carregarClientes();
+      carregarProdutos();
   };
 
-  // --- FUNÇÕES DE CLIENTES ---
+  // --- 1. CLIENTES (ABA INÍCIO) ---
   window.carregarClientes = async () => {
+      const lista = document.getElementById('listaClientes');
       const setor = document.getElementById('filtroSetor').value;
       const busca = document.getElementById('buscaNome').value.toLowerCase();
-      const lista = document.getElementById('listaClientes');
-      
-      lista.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div><p>Buscando dados...</p></div>';
 
-      try {
-          const q = query(collection(db, "clientes"), orderBy("nome"));
-          const snap = await getDocs(q);
+      // Busca simples no Firebase
+      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const snap = await getDocs(q);
+
+      lista.innerHTML = '';
+      let encontrou = false;
+
+      snap.forEach(d => {
+          const c = d.data();
           
-          lista.innerHTML = '';
-          let encontrou = false;
+          // Filtros (feitos no código para ser mais flexível)
+          if (setor && c.setor !== setor) return;
+          if (busca && !c.nome.toLowerCase().includes(busca)) return;
 
-          if (snap.empty) {
-             lista.innerHTML = '<div class="alert alert-warning text-center">Nenhum cliente cadastrado ainda.<br>Use o botão de Engrenagem ⚙️ para importar sua planilha!</div>';
-             return;
-          }
+          encontrou = true;
+          const saldo = parseFloat(c.saldo) || 0;
+          
+          // Layout do Cartão
+          const estiloBorda = saldo < -0.01 ? 'card-devedor' : 'card-credito';
+          const estiloValor = saldo < -0.01 ? 'saldo-negativo' : 'saldo-positivo';
+          const textoValor = saldo < -0.01 ? `DEVE R$ ${Math.abs(saldo).toFixed(2)}` : `CRÉDITO R$ ${saldo.toFixed(2)}`;
 
-          snap.forEach((d) => {
-              const c = d.data();
-              // Filtros manuais
-              if (setor && c.setor !== setor) return;
-              if (busca && !c.nome.toLowerCase().includes(busca)) return;
-              
-              encontrou = true;
-              const saldo = parseFloat(c.saldo);
-              
-              // Lógica visual: Se deve, fica vermelho. Se tem crédito, verde.
-              const corCard = saldo < -0.01 ? 'card-saldo-devedor' : 'card-saldo-positivo';
-              const classeValor = saldo < -0.01 ? 'valor-devendo' : 'valor-credito';
-              const textoSaldo = saldo < -0.01 ? `DEVE: R$ ${Math.abs(saldo).toFixed(2)}` : `CRÉDITO: R$ ${saldo.toFixed(2)}`;
-
-              lista.innerHTML += `
-                <div class="col-md-6 mb-3">
-                    <div class="card shadow-sm ${corCard}">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="card-title fw-bold text-uppercase mb-0 text-truncate" style="max-width: 70%;">${c.nome}</h6>
-                                <span class="badge bg-secondary">${c.setor}</span>
+          lista.innerHTML += `
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm ${estiloBorda}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="fw-bold mb-0 text-uppercase text-truncate">${c.nome}</h5>
+                            <span class="badge bg-secondary">${c.setor}</span>
+                        </div>
+                        <div class="mt-2 mb-3 ${estiloValor}">${textoValor}</div>
+                        
+                        <div class="row g-1">
+                            <div class="col-5">
+                                <button class="btn btn-vender w-100 btn-sm" onclick="abrirModal('VENDA', '${d.id}', '${c.nome}')">⬇️ Vender</button>
                             </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center bg-white p-2 rounded border mb-3">
-                                <span class="text-muted small">Saldo Atual:</span>
-                                <span class="${classeValor}">${textoSaldo}</span>
+                            <div class="col-5">
+                                <button class="btn btn-success w-100 btn-sm" onclick="abrirModal('PAGAMENTO', '${d.id}', '${c.nome}')">⬆️ Pagar</button>
                             </div>
-
-                            <div class="d-grid gap-2 d-flex">
-                                <button class="btn btn-danger btn-sm flex-grow-1" onclick="abrirVenda('${d.id}', '${c.nome}')">⬇️ Vender (Fiado)</button>
-                                <button class="btn btn-success btn-sm flex-grow-1" onclick="abrirPagamento('${d.id}', '${c.nome}')">⬆️ Receber (Pagar)</button>
-                                <button class="btn btn-outline-dark btn-sm" onclick="verExtrato('${d.id}')" title="Ver Histórico">📄</button>
+                            <div class="col-2">
+                                <button class="btn btn-outline-dark w-100 btn-sm" onclick="verExtrato('${d.id}')">📄</button>
                             </div>
                         </div>
                     </div>
                 </div>
-              `;
-          });
-          
-          if(!encontrou) lista.innerHTML = '<p class="text-center text-muted mt-4">Ninguém encontrado com esse nome/setor.</p>';
-      } catch (error) {
-          console.error(error);
-          lista.innerHTML = `<div class="alert alert-danger">Erro ao conectar: ${error.message}.<br>Verifique se criou o Banco de Dados no modo TESTE.</div>`;
-      }
+            </div>
+          `;
+      });
+
+      if(!encontrou) lista.innerHTML = '<div class="alert alert-light text-center">Nenhum cliente encontrado.</div>';
   };
 
-  window.salvarCliente = async () => {
-      const nome = document.getElementById('nomeCliente').value.toUpperCase();
-      const setor = document.getElementById('setorCliente').value;
-      const tel = document.getElementById('telCliente').value;
+  // --- 2. NOVO CLIENTE (ABA CADASTRO) ---
+  window.salvarNovoCliente = async () => {
+      const nome = document.getElementById('novoNome').value.toUpperCase();
+      const setor = document.getElementById('novoSetor').value;
+      const tel = document.getElementById('novoTel').value;
 
-      if(!nome) return alert("Digite o nome!");
+      if(!nome) return alert("Digite o nome do cliente!");
 
+      // Verifica duplicidade
       const q = query(collection(db, "clientes"), where("nome", "==", nome));
       const check = await getDocs(q);
-      if(!check.empty){
-          alert("JÁ EXISTE! Esse cliente já está cadastrado.");
-          return;
-      }
+      if(!check.empty) return alert("Este cliente JÁ EXISTE!");
 
       await addDoc(collection(db, "clientes"), { nome, setor, telefone: tel, saldo: 0 });
-      bootstrap.Modal.getInstance(document.getElementById('modalNovoCliente')).hide();
+      
+      alert("Cliente Cadastrado com Sucesso!");
+      
+      // Limpa e volta pro início
+      document.getElementById('novoNome').value = '';
+      document.querySelector('[data-bs-target="#tab-inicio"]').click(); // Clica na aba Início
       carregarClientes();
   };
 
-  // --- IMPORTAÇÃO CSV ---
-  window.processarCSV = () => {
-      const fileInput = document.getElementById('arquivoCSV');
-      const file = fileInput.files[0];
-      if(!file) return alert("Escolha o arquivo CSV primeiro!");
-
-      Papa.parse(file, {
-          header: true,
-          skipEmptyLines: true,
-          complete: async function(results) {
-              const dados = results.data;
-              let importados = 0;
-              let ignorados = 0;
-              const statusDiv = document.getElementById('statusImport');
-              statusDiv.innerText = "⏳ Importando... não feche a janela...";
-
-              for (let linha of dados) {
-                  const nome = linha['NOME']; 
-                  const setor = linha['SETOR'] || 'OUTROS';
-                  const tel = linha['TELEFONE'] || '';
-                  
-                  // Tratamento do valor: remove "R$" e troca vírgula por ponto se necessário
-                  let valRaw = linha['TOTAL'];
-                  if(typeof valRaw === 'string') valRaw = valRaw.replace('R$', '').replace(',', '.');
-                  let dividaInicial = parseFloat(valRaw) || 0;
-                  
-                  // Se dividaInicial é 50, saldo é -50 (negativo = deve)
-                  let saldo = dividaInicial > 0 ? -Math.abs(dividaInicial) : 0;
-
-                  if (nome) {
-                      const q = query(collection(db, "clientes"), where("nome", "==", nome.toUpperCase()));
-                      const check = await getDocs(q);
-                      
-                      if(check.empty) {
-                          await addDoc(collection(db, "clientes"), {
-                              nome: nome.toUpperCase(),
-                              setor: setor.toUpperCase(),
-                              telefone: tel,
-                              saldo: saldo
-                          });
-                          importados++;
-                      } else {
-                          ignorados++;
-                      }
-                  }
-              }
-              alert(`Concluído! \n✅ Novos cadastrados: ${importados}\n⚠️ Já existiam: ${ignorados}`);
-              statusDiv.innerText = "";
-              bootstrap.Modal.getInstance(document.getElementById('modalConfig')).hide();
-              carregarClientes();
-          }
-      });
-  };
-
-  // --- PRODUTOS ---
+  // --- 3. PRODUTOS (ABA PRODUTOS) ---
   window.carregarProdutos = async () => {
-      try {
-        const q = query(collection(db, "produtos"));
-        const snap = await getDocs(q);
-        PRODUTOS_CACHE = [];
-        
-        const listaUI = document.getElementById('listaProdutosCfg');
-        const selectUI = document.getElementById('selectProduto');
-        listaUI.innerHTML = '';
-        selectUI.innerHTML = '<option value="">-- Selecione --</option>';
+      const lista = document.getElementById('listaProdutosCfg');
+      const select = document.getElementById('selectProduto');
+      
+      const q = query(collection(db, "produtos"));
+      const snap = await getDocs(q);
 
-        if (snap.empty) {
-            // Cria produtos padrão se não existirem
-            await addDoc(collection(db, "produtos"), { nome: "TRUFA", preco: 6.00 });
-            carregarProdutos(); 
-            return;
-        }
+      lista.innerHTML = '';
+      select.innerHTML = '<option value="">-- Selecione --</option>';
 
-        snap.forEach(d => {
-            const p = d.data();
-            PRODUTOS_CACHE.push(p);
-            listaUI.innerHTML += `<li class="list-group-item d-flex justify-content-between">${p.nome} <span>R$ ${p.preco}</span></li>`;
-            selectUI.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} - R$ ${p.preco}</option>`;
-        });
-      } catch(e) {
-          console.log("Erro ao carregar produtos (pode ser a primeira execução):", e);
-      }
+      snap.forEach(d => {
+          const p = d.data();
+          // Na lista
+          lista.innerHTML += `<li class="list-group-item d-flex justify-content-between">${p.nome} <span>R$ ${p.preco}</span></li>`;
+          // No select de vendas
+          select.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$ ${p.preco})</option>`;
+      });
   };
 
   window.addProduto = async () => {
       const nome = document.getElementById('prodNome').value.toUpperCase();
-      const preco = parseFloat(document.getElementById('prodPreco').value);
+      const preco = document.getElementById('prodPreco').value;
       if(nome && preco) {
-          await addDoc(collection(db, "produtos"), { nome, preco });
+          await addDoc(collection(db, "produtos"), { nome, preco: parseFloat(preco) });
           carregarProdutos();
           document.getElementById('prodNome').value = '';
           document.getElementById('prodPreco').value = '';
       }
   };
 
-  // --- MOVIMENTAÇÕES ---
-  window.abrirVenda = (id, nome) => {
-      prepararModal(id, 'VENDA', `🔻 Vender para ${nome}`);
-      document.getElementById('areaProdutos').classList.remove('d-none');
-      document.getElementById('valorMov').setAttribute('readonly', true);
+  // --- 4. IMPORTAR EXCEL (AGORA FUNCIONA COM XLSX) ---
+  window.processarExcel = () => {
+      const fileInput = document.getElementById('arquivoExcel');
+      const file = fileInput.files[0];
+      const status = document.getElementById('statusImport');
+
+      if(!file) return alert("Selecione um arquivo Excel!");
+
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+          status.innerText = "Lendo arquivo...";
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          
+          // Pega a primeira aba da planilha
+          const primeiraAba = workbook.Sheets[workbook.SheetNames[0]];
+          // Converte para JSON (Lista de objetos)
+          const dados = XLSX.utils.sheet_to_json(primeiraAba);
+
+          let novos = 0;
+          let existentes = 0;
+
+          status.innerText = `Analisando ${dados.length} linhas...`;
+
+          for (let linha of dados) {
+              // Tenta achar as colunas pelos nomes que você mandou
+              const nome = linha['NOME'];
+              const setor = linha['SETOR'] || 'GERAL';
+              const tel = linha['TELEFONE'] || '';
+              // Pega a dívida (Coluna TOTAL)
+              let total = linha['TOTAL'];
+              
+              if(nome) {
+                  // Limpa o valor (tira R$, troca virgula)
+                  if(typeof total === 'string') total = parseFloat(total.replace('R$', '').replace(',', '.'));
+                  if(!total) total = 0;
+
+                  // Se TOTAL é positivo na planilha, é DÍVIDA no sistema (saldo negativo)
+                  const saldo = total > 0 ? -Math.abs(total) : 0;
+
+                  // Verifica se já existe
+                  const q = query(collection(db, "clientes"), where("nome", "==", nome.toUpperCase()));
+                  const check = await getDocs(q);
+
+                  if(check.empty) {
+                      await addDoc(collection(db, "clientes"), {
+                          nome: nome.toUpperCase(),
+                          setor: setor.toUpperCase(),
+                          telefone: tel,
+                          saldo: saldo
+                      });
+                      novos++;
+                  } else {
+                      existentes++;
+                  }
+              }
+          }
+          
+          alert(`FIM!\nNovos Cadastrados: ${novos}\nJá existiam: ${existentes}`);
+          status.innerText = "";
+          document.querySelector('[data-bs-target="#tab-inicio"]').click(); // Volta pro inicio
+          carregarClientes();
+      };
+      reader.readAsArrayBuffer(file);
   };
 
-  window.abrirPagamento = (id, nome) => {
-      prepararModal(id, 'PAGAMENTO', `🔺 Receber de ${nome}`);
-      document.getElementById('areaProdutos').classList.add('d-none');
-      document.getElementById('valorMov').removeAttribute('readonly');
-      document.getElementById('valorMov').value = '';
-  };
-
-  function prepararModal(id, tipo, titulo) {
+  // --- MOVIMENTAÇÕES (VENDA E PAGAMENTO) ---
+  window.abrirModal = (tipo, id, nome) => {
       document.getElementById('idClienteMov').value = id;
       document.getElementById('tipoMov').value = tipo;
-      document.getElementById('tituloMovimento').innerText = titulo;
-      document.getElementById('dataMov').valueAsDate = new Date();
-      document.getElementById('descMov').value = '';
+      document.getElementById('tituloMovimento').innerText = tipo === 'VENDA' ? `🔻 Vender para ${nome}` : `🔺 Receber de ${nome}`;
       
-      document.getElementById('selectProduto').value = '';
+      // Resetar campos
+      document.getElementById('selectProduto').value = "";
       document.getElementById('qtdProduto').value = 1;
-      document.getElementById('totalItemPreview').value = '';
-      
-      new bootstrap.Modal(document.getElementById('modalMovimento')).show();
-  }
+      document.getElementById('descMov').value = "";
+      document.getElementById('valorMov').value = "";
+      document.getElementById('dataMov').valueAsDate = new Date();
 
-  window.atualizarTotalVenda = () => {
+      if(tipo === 'PAGAMENTO') {
+          document.getElementById('boxProduto').classList.add('d-none'); // Esconde produto se for pagamento
+      } else {
+          document.getElementById('boxProduto').classList.remove('d-none');
+      }
+
+      new bootstrap.Modal(document.getElementById('modalMovimento')).show();
+  };
+
+  window.calcTotal = () => {
       const select = document.getElementById('selectProduto');
       const preco = parseFloat(select.value);
       const qtd = parseFloat(document.getElementById('qtdProduto').value);
       
-      if (!isNaN(preco)) {
+      if(!isNaN(preco)) {
           const total = preco * qtd;
-          document.getElementById('totalItemPreview').value = `R$ ${total.toFixed(2)}`;
           document.getElementById('valorMov').value = total.toFixed(2);
-          
           const nomeProd = select.options[select.selectedIndex].getAttribute('data-nome');
           document.getElementById('descMov').value = `${qtd}x ${nomeProd}`;
       }
   };
 
-  window.salvarMovimentacao = async () => {
-      const idCliente = document.getElementById('idClienteMov').value;
+  window.confirmarMovimento = async () => {
+      const id = document.getElementById('idClienteMov').value;
       const tipo = document.getElementById('tipoMov').value;
-      let valor = parseFloat(document.getElementById('valorMov').value);
+      const valor = parseFloat(document.getElementById('valorMov').value);
       const desc = document.getElementById('descMov').value;
       const data = document.getElementById('dataMov').value;
 
-      if(!valor || isNaN(valor)) return alert("Digite um valor válido!");
+      if(!valor) return alert("Digite o valor!");
 
-      const btn = document.querySelector('#modalMovimento .btn-success');
-      const textoOriginal = btn.innerText;
-      btn.innerText = "Salvando...";
-      btn.disabled = true;
+      const clienteRef = doc(db, "clientes", id);
+      const snap = await getDoc(clienteRef);
+      const saldoAtual = snap.data().saldo;
 
-      try {
-        const clienteRef = doc(db, "clientes", idCliente);
-        const clienteSnap = await getDoc(clienteRef);
-        let saldoAtual = parseFloat(clienteSnap.data().saldo);
+      // VENDA: Diminui saldo (-). PAGAMENTO: Aumenta saldo (+).
+      const novoSaldo = (tipo === 'VENDA') ? saldoAtual - valor : saldoAtual + valor;
 
-        // Lógica: VENDA diminui saldo (mais negativo), PAGAMENTO aumenta (mais positivo)
-        let novoSaldo = (tipo === 'VENDA') ? saldoAtual - valor : saldoAtual + valor;
+      // Salva histórico
+      await addDoc(collection(db, "transacoes"), {
+          cliente_id: id, tipo, valor, descricao: desc, data, timestamp: new Date()
+      });
 
-        await addDoc(collection(db, "transacoes"), {
-            cliente_id: idCliente, tipo, valor, descricao: desc, data, timestamp: new Date()
-        });
+      // Atualiza Saldo
+      await updateDoc(clienteRef, { saldo: novoSaldo });
 
-        await updateDoc(clienteRef, { saldo: novoSaldo });
-
-        bootstrap.Modal.getInstance(document.getElementById('modalMovimento')).hide();
-        carregarClientes();
-      } catch (e) {
-          alert("Erro ao salvar: " + e.message);
-      } finally {
-          btn.innerText = textoOriginal;
-          btn.disabled = false;
-      }
+      bootstrap.Modal.getInstance(document.getElementById('modalMovimento')).hide();
+      carregarClientes();
   };
 
   window.verExtrato = async (id) => {
       const q = query(collection(db, "transacoes"), where("cliente_id", "==", id), orderBy("data", "desc"));
       const snap = await getDocs(q);
-      const tbody = document.getElementById('tabelaExtrato');
-      tbody.innerHTML = '';
+      const tb = document.getElementById('tabelaExtrato');
+      tb.innerHTML = '';
       
-      if(snap.empty) {
-          tbody.innerHTML = '<tr><td colspan="3" class="text-center">Nenhum histórico ainda.</td></tr>';
-      }
-
       snap.forEach(d => {
           const m = d.data();
           const cor = m.tipo === 'PAGAMENTO' ? 'text-success' : 'text-danger';
           const sinal = m.tipo === 'PAGAMENTO' ? '+' : '-';
-          // Formata data YYYY-MM-DD para DD/MM/YYYY
-          const dataFmt = m.data.split('-').reverse().join('/');
-          
-          tbody.innerHTML += `
-            <tr>
-                <td>${dataFmt}</td>
-                <td>${m.descricao}</td>
-                <td class="${cor} fw-bold">${sinal} R$ ${m.valor.toFixed(2)}</td>
-            </tr>
-          `;
+          const dataBR = m.data.split('-').reverse().join('/');
+          tb.innerHTML += `<tr><td>${dataBR}</td><td>${m.descricao}</td><td class="${cor} fw-bold">${sinal}${m.valor}</td></tr>`;
       });
       new bootstrap.Modal(document.getElementById('modalExtrato')).show();
   };
+
 </script>
+
 </body>
 </html>
