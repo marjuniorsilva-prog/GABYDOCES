@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V12.0 (Histórico Destravado)</title>
+    <title>Gaby Doces - V14.0 (Com WhatsApp)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
         body { background-color: #f8f9fa; padding-bottom: 100px; font-family: sans-serif; }
         .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
         .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
         
-        /* Status Cores */
-        .card-cliente { border-left: 5px solid #ccc; }
+        .card-cliente { border-left: 5px solid #ccc; transition: 0.2s; }
         .status-devendo { border-left-color: #dc3545; background-color: #fff5f5; }
         .status-ok { border-left-color: #198754; background-color: #fff; }
         .texto-devendo { color: #dc3545; font-weight: 800; }
         .texto-ok { color: #198754; font-weight: 800; }
 
-        /* Dashboard */
         .card-dash { cursor: pointer; color: white; border: none; }
         .bg-hoje { background: linear-gradient(135deg, #fce38a, #f38181); color: #333; }
         .bg-atrasado { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
@@ -29,7 +28,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V12.0</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-success small"><i class="bi bi-whatsapp"></i> V14.0</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -63,12 +62,15 @@
     </div>
 
     <div class="tab-pane fade" id="tab-dash">
-        <h6 class="text-muted fw-bold mb-3">Cobrança do Dia</h6>
+        <h6 class="text-muted fw-bold mb-3">Painel de Cobrança</h6>
         <div class="row g-2">
             <div class="col-12">
                 <div class="card card-dash bg-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="fw-bold m-0">🟡 VENCE HOJE</h5>
+                        <div>
+                            <h5 class="fw-bold m-0">🟡 VENCE HOJE</h5>
+                            <small>Clique para cobrar no Zap</small>
+                        </div>
                         <h3 class="fw-bold m-0" id="cntHoje">0</h3>
                     </div>
                 </div>
@@ -87,7 +89,7 @@
             </div>
         </div>
         <div id="areaRelatorio" class="mt-4">
-            <p class="text-center text-muted small">Clique nos cartões para ver a lista.</p>
+            <p class="text-center text-muted small">Clique nos cartões para ver a lista de cobrança.</p>
         </div>
     </div>
 
@@ -104,7 +106,7 @@
                     <option value="BIANCA">Bianca</option>
                     <option value="RUA">Rua/Outros</option>
                 </select>
-                <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone">
+                <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone (com DDD)">
                 <label class="small text-muted">Vencimento Combinado:</label>
                 <input type="date" id="novoVencimento" class="form-control mb-3">
                 <button class="btn btn-primary w-100" onclick="salvarNovoCliente()">💾 Salvar Cliente</button>
@@ -118,6 +120,7 @@
             <input type="number" id="prodPreco" class="form-control" placeholder="R$">
             <button class="btn btn-success" onclick="addProduto()">Add</button>
         </div>
+        <small class="text-muted d-block mb-2">Clique no produto para Editar ou Excluir.</small>
         <ul id="listaProdutos" class="list-group shadow-sm"></ul>
     </div>
 
@@ -153,7 +156,9 @@
                         <input type="number" id="qtdProdVenda" class="form-control" value="1" style="max-width: 60px;">
                         <button class="btn btn-primary" onclick="addCarrinho()">➕</button>
                     </div>
-                    <ul class="list-group mb-2 bg-light" id="listaCarrinho" style="max-height: 120px; overflow-y: auto;">
+                    
+                    <label class="small text-muted fw-bold">Carrinho:</label>
+                    <ul class="list-group mb-2 bg-light" id="listaCarrinho" style="max-height: 150px; overflow-y: auto;">
                         <li class="list-group-item text-center small text-muted">Carrinho vazio</li>
                     </ul>
                     <h4 class="text-end fw-bold text-primary" id="totalCarrinho">R$ 0,00</h4>
@@ -196,16 +201,17 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title">📜 Histórico Detalhado</h5>
+                <h5 class="modal-title">📜 Histórico</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
-                <table class="table table-striped mb-0 table-sm" style="font-size: 0.9rem;">
+                <table class="table table-striped mb-0 table-sm align-middle" style="font-size: 0.9rem;">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 25%">Data</th>
+                            <th style="width: 20%">Data</th>
                             <th style="width: 50%">Descrição</th>
-                            <th style="width: 25%" class="text-end">Valor</th>
+                            <th style="width: 20%" class="text-end">Valor</th>
+                            <th style="width: 10%">Ação</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaExtrato"></tbody>
@@ -215,24 +221,64 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalVencimento" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="modalEditarCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"><h6 class="modal-title">Alterar Data</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">✏️ Editar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
-                <input type="hidden" id="idClienteVenc">
-                <input type="date" id="novaDataVenc" class="form-control mb-3">
-                <button class="btn btn-primary w-100" onclick="salvarVencimento()">Salvar</button>
+                <input type="hidden" id="editId">
+                <label>Nome:</label>
+                <input type="text" id="editNome" class="form-control mb-2">
+                <label>Setor:</label>
+                <select id="editSetor" class="form-select mb-2">
+                    <option value="IGREJA">Igreja</option>
+                    <option value="ROLETE">Rolete</option>
+                    <option value="TABATA">Tabata</option>
+                    <option value="ANDERSON">Anderson</option>
+                    <option value="BIANCA">Bianca</option>
+                    <option value="RUA">Rua/Outros</option>
+                </select>
+                <label>Telefone:</label>
+                <input type="text" id="editTel" class="form-control mb-2">
+                <label>Vencimento:</label>
+                <input type="date" id="editVenc" class="form-control mb-3">
+                
+                <button class="btn btn-dark w-100" onclick="salvarEdicaoCliente()">Salvar Alterações</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1070;">
+<div class="modal fade" id="modalEditarProd" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Editar Produto</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProdId">
+                <label>Nome:</label>
+                <input type="text" id="editProdNome" class="form-control mb-2">
+                <label>Preço:</label>
+                <input type="number" id="editProdPreco" class="form-control mb-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary flex-grow-1" onclick="salvarEdicaoProd()">Salvar</button>
+                    <button class="btn btn-danger" onclick="excluirProd()">🗑️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1080;">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content border-danger">
             <div class="modal-body text-center">
-                <strong class="text-danger">🔒 SENHA:</strong>
+                <strong class="text-danger">🔒 SENHA CHEFE:</strong>
                 <input type="password" id="inputSenha" class="form-control text-center fs-4 my-2" placeholder="****">
                 <button class="btn btn-danger w-100" onclick="validarSenha()">OK</button>
             </div>
@@ -245,7 +291,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
@@ -277,14 +323,17 @@
       
       lista.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>';
       
-      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const q = query(collection(db, "clientes"));
       const snap = await getDocs(q);
-      lista.innerHTML = '';
       
+      let clientes = [];
+      snap.forEach(d => clientes.push({id: d.id, ...d.data()}));
+      clientes.sort((a,b) => a.nome.localeCompare(b.nome));
+
+      lista.innerHTML = '';
       const hoje = new Date().toISOString().split('T')[0];
 
-      snap.forEach(d => {
-          const c = d.data();
+      clientes.forEach(c => {
           if (busca && !c.nome.toLowerCase().includes(busca)) return;
           if (setor && c.setor !== setor) return;
 
@@ -308,26 +357,29 @@
           }
 
           const txtSaldo = devedor ? `DEVE R$ ${Math.abs(saldo).toFixed(2)}` : `CRÉDITO R$ ${saldo.toFixed(2)}`;
+          // Botão WhatsApp Simples
+          const btnZap = `<button class="btn btn-success btn-sm w-100 mt-1" onclick="enviarZap('${c.nome}', '${c.telefone}', ${Math.abs(saldo)}, 'COBRANCA')"><i class="bi bi-whatsapp"></i> Cobrar</button>`;
 
           lista.innerHTML += `
             <div class="col-md-6 mb-2">
                 <div class="card shadow-sm card-cliente ${cardColor}">
                     <div class="card-body p-2">
-                        <div class="d-flex justify-content-between">
-                            <h6 class="fw-bold text-truncate" style="max-width: 65%">${c.nome}</h6>
-                            <span class="badge bg-secondary" style="font-size: 0.7rem">${c.setor}</span>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="fw-bold text-truncate m-0" style="max-width: 65%">${c.nome}</h6>
+                            <button class="btn btn-sm text-secondary border-0" onclick="abrirEditarCliente('${c.id}')">✏️</button>
                         </div>
+                        <span class="badge bg-secondary mb-1" style="font-size: 0.7rem">${c.setor}</span>
                         ${badge}
-                        <div class="${textColor} fs-5 mb-1 d-flex justify-content-between align-items-center">
+                        <div class="${textColor} fs-5 mb-1 text-center">
                             ${txtSaldo}
-                            <button class="btn btn-sm btn-link text-decoration-none" onclick="abrirEditarVenc('${d.id}', '${c.vencimento || ''}')">📅 Data</button>
                         </div>
                         <div class="d-flex gap-1 mt-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${d.id}', '${c.nome}', ${saldo})">Vender</button>
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${d.id}')">Receber</button>
+                            <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${c.id}', '${c.nome}', ${saldo})">Vender</button>
+                            <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${c.id}')">Receber</button>
                         </div>
+                        ${devedor ? btnZap : ''}
                         <div class="text-end mt-1">
-                            <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${d.id}')">📄 Detalhes</button>
+                            <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${c.id}')">📄 Detalhes</button>
                         </div>
                     </div>
                 </div>
@@ -335,147 +387,93 @@
       });
   };
 
-  // 2. NOVO CLIENTE (COM HISTÓRICO INICIAL)
-  window.salvarNovoCliente = async () => {
-      const nome = document.getElementById('novoNome').value.toUpperCase();
-      const setor = document.getElementById('novoSetor').value;
-      const tel = document.getElementById('novoTel').value;
-      const venc = document.getElementById('novoVencimento').value;
-
-      if(!nome) return alert("Nome é obrigatório!");
-
-      const check = await getDocs(query(collection(db, "clientes"), where("nome", "==", nome)));
-      if(!check.empty) return alert("Cliente já existe!");
-
-      const ref = await addDoc(collection(db, "clientes"), { 
-          nome, setor, telefone: tel, saldo: 0, vencimento: venc 
-      });
-
-      // Cria histórico inicial para não bugar
-      await addDoc(collection(db, "transacoes"), {
-          cliente_id: ref.id,
-          tipo: 'INFO',
-          metodo: 'SISTEMA',
-          valor: 0,
-          descricao: 'Cadastro Inicial',
-          data: new Date().toISOString().split('T')[0],
-          timestamp: new Date()
-      });
-
-      alert("Salvo com sucesso!");
-      document.querySelector('[data-bs-target="#tab-inicio"]').click();
-      carregarClientes();
-  };
-
-  // 3. EXTRATO (DESTRAVADO - SEM ORDERBY NO QUERY)
-  window.verExtrato = async (id) => {
-      const modal = new bootstrap.Modal(document.getElementById('modalExtrato'));
-      modal.show();
-      const tb = document.getElementById('tabelaExtrato');
-      tb.innerHTML = '<tr><td colspan="3" class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+  // 2. FUNÇÃO WHATSAPP (INTEGRAÇÃO V14)
+  window.enviarZap = (nome, telefone, valor, tipo) => {
+      if(!telefone || telefone.length < 8) return alert("Cliente sem telefone cadastrado!");
       
-      try {
-          // REMOVIDO "orderBy" daqui para não dar erro de Índice no Firebase
-          const q = query(collection(db, "transacoes"), where("cliente_id", "==", id));
-          const snap = await getDocs(q);
-          
-          if(snap.empty) {
-              tb.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Sem movimentações.</td></tr>';
-              return;
-          }
+      // Limpa telefone (deixa so numeros)
+      const num = telefone.replace(/\D/g, '');
+      const telFinal = num.length <= 11 ? "55" + num : num; // Adiciona 55 se faltar
 
-          // Ordenação feita aqui no Javascript (Mais novo primeiro)
-          let dados = [];
-          snap.forEach(d => dados.push(d.data()));
-          dados.sort((a, b) => new Date(b.timestamp.seconds * 1000) - new Date(a.timestamp.seconds * 1000));
-
-          tb.innerHTML = '';
-          
-          dados.forEach(t => {
-              const dataEx = t.data ? formatarData(t.data) : "??/??";
-              const descEx = t.descricao || "Sem descrição";
-              const valorEx = t.valor !== undefined ? parseFloat(t.valor).toFixed(2) : "0.00";
-              
-              const isPgto = t.tipo === 'PAGAMENTO';
-              const isInfo = t.tipo === 'INFO';
-              
-              let cor = 'text-danger'; let sinal = '-';
-              if (isPgto) { cor = 'text-success'; sinal = '+'; }
-              if (isInfo) { cor = 'text-muted'; sinal = ''; }
-
-              // Destaque para Pagamento À Vista
-              const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">À VISTA</span>' : '';
-
-              tb.innerHTML += `
-                <tr>
-                    <td>${dataEx}</td>
-                    <td>
-                        <div class="fw-bold small">${t.tipo}${extra}</div>
-                        <div class="text-muted small">${descEx}</div>
-                    </td>
-                    <td class="${cor} fw-bold text-end">${sinal} R$ ${valorEx}</td>
-                </tr>`;
-          });
-      } catch (e) {
-          console.error(e);
-          tb.innerHTML = `<tr><td colspan="3" class="text-danger small">Erro: ${e.message}</td></tr>`;
+      let msg = "";
+      if (tipo === 'HOJE') {
+          msg = `Olá ${nome}, tudo bem? Passando para lembrar do seu vencimento hoje na Gaby Doces. Valor: R$ ${valor.toFixed(2)}.`;
+      } else if (tipo === 'ATRASADO') {
+          msg = `Oi ${nome}! Consta aqui um valor pendente de R$ ${valor.toFixed(2)} na Gaby Doces. Podemos acertar?`;
+      } else {
+          msg = `Olá ${nome}, tudo bem? Sobre seu saldo na Gaby Doces de R$ ${valor.toFixed(2)}...`;
       }
+
+      const url = `https://wa.me/${telFinal}?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
   };
 
-  function formatarData(iso) { if(!iso) return ""; return iso.split('-').reverse().join('/'); }
-
-  // 4. VENDAS & CARRINHO
-  window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; TOTAL_CARRINHO=0; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=`Venda: ${nome}`; const bloq=saldo<-1; document.getElementById('boxBloqueio').classList.toggle('d-none',!bloq); document.getElementById('areaVendaInputs').classList.toggle('d-none',bloq); new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
-  window.desbloquearComSenha = () => { pedirSenha(()=>{ document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
-  window.addCarrinho = () => { const s=document.getElementById('selectProdVenda'); const q=parseFloat(document.getElementById('qtdProdVenda').value); const p=parseFloat(s.value); const n=s.options[s.selectedIndex].getAttribute('data-nome'); if(!n)return; CARRINHO.push({nome:n,qtd:q,total:p*q}); TOTAL_CARRINHO+=p*q; atualizarCarrinho(); };
-  function atualizarCarrinho() { const l=document.getElementById('listaCarrinho'); l.innerHTML=''; CARRINHO.forEach(i=>{ l.innerHTML+=`<li class="list-group-item d-flex justify-content-between p-1 small">${i.qtd}x ${i.nome} <span>R$ ${i.total.toFixed(2)}</span></li>`; }); document.getElementById('totalCarrinho').innerText=`R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
-  
-  window.finalizarVenda = async () => {
-      if(!CARRINHO.length) return alert("Carrinho vazio!");
-      const id = document.getElementById('idClienteVenda').value;
-      const tipo = document.querySelector('input[name="tipoVenda"]:checked').value;
-      let data = document.getElementById('dataVenda').value;
-      if(!data) data = new Date().toISOString().split('T')[0];
-
-      const ref = doc(db, "clientes", id);
-      const snap = await getDoc(ref);
-      let saldo = snap.data().saldo || 0;
-      
-      if(tipo === 'FIADO') { saldo -= TOTAL_CARRINHO; await updateDoc(ref, { saldo, ultima_venda: data }); }
-      else { await updateDoc(ref, { ultima_venda: data }); }
-      
-      const desc = CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', ');
-      await addDoc(collection(db, "transacoes"), { cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:desc, data, timestamp:new Date() });
-      bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!");
-  };
-
-  window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('valorPgto').value=''; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
-  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; if(!v) return alert("Valor?"); const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', metodo:'DINHEIRO', valor:v, descricao:'Pagamento', data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
-
-  window.abrirEditarVenc = (id,v) => { document.getElementById('idClienteVenc').value=id; document.getElementById('novaDataVenc').value=v; new bootstrap.Modal(document.getElementById('modalVencimento')).show(); };
-  window.salvarVencimento = async () => { await updateDoc(doc(db,"clientes",document.getElementById('idClienteVenc').value), { vencimento: document.getElementById('novaDataVenc').value }); bootstrap.Modal.getInstance(document.getElementById('modalVencimento')).hide(); carregarClientes(); };
-
-  window.carregarDashboard = async () => {
-      const hoje = new Date().toISOString().split('T')[0];
-      const q = query(collection(db, "clientes")); const snap = await getDocs(q);
-      let h=0, a=0, p=0;
-      snap.forEach(d => { const c = d.data(); if(c.saldo<-0.01 && c.vencimento) { if(c.vencimento===hoje)h++; else if(c.vencimento<hoje)a++; else p++; } });
-      document.getElementById('cntHoje').innerText=h; document.getElementById('cntAtrasados').innerText=a; document.getElementById('cntPrazo').innerText=p;
-  };
+  // 3. DASHBOARD COM BOTÃO ZAP
   window.filtrarRelatorio = async (tipo) => {
       const a = document.getElementById('areaRelatorio'); a.innerHTML='Carregando...';
       const hoje = new Date().toISOString().split('T')[0];
-      const q = query(collection(db, "clientes"), orderBy("nome")); const snap = await getDocs(q);
+      const q = query(collection(db, "clientes")); const snap = await getDocs(q);
+      
       let html = '<ul class="list-group">';
-      snap.forEach(d => { const c = d.data(); if(c.saldo<-0.01 && c.vencimento) { let ok=false; if(tipo==='HOJE' && c.vencimento===hoje) ok=true; if(tipo==='ATRASADO' && c.vencimento<hoje) ok=true; if(tipo==='PRAZO' && c.vencimento>hoje) ok=true; if(ok) html+=`<li class="list-group-item d-flex justify-content-between"><div><strong>${c.nome}</strong><br><small>Vence: ${formatarData(c.vencimento)}</small></div><span class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</span></li>`; } });
-      html+='</ul>'; a.innerHTML=html;
+      snap.forEach(d => { 
+          const c = d.data(); 
+          if(c.saldo < -0.01 && c.vencimento) { 
+              let ok=false; 
+              if(tipo==='HOJE' && c.vencimento===hoje) ok=true; 
+              if(tipo==='ATRASADO' && c.vencimento<hoje) ok=true; 
+              if(tipo==='PRAZO' && c.vencimento>hoje) ok=true; 
+              
+              if(ok) {
+                  // Botão WhatsApp no relatório
+                  const btn = `<button class="btn btn-success btn-sm" onclick="enviarZap('${c.nome}','${c.telefone}',${Math.abs(c.saldo)},'${tipo}')"><i class="bi bi-whatsapp"></i></button>`;
+                  
+                  html+=`<li class="list-group-item d-flex justify-content-between align-items-center">
+                      <div><strong>${c.nome}</strong><br><small>Vence: ${formatarData(c.vencimento)}</small></div>
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</span>
+                        ${btn}
+                      </div>
+                  </li>`; 
+              }
+          } 
+      }); 
+      html+='</ul>'; a.innerHTML=html; 
   };
+  
+  window.carregarDashboard = async () => { const hoje=new Date().toISOString().split('T')[0]; const q=query(collection(db,"clientes")); const snap=await getDocs(q); let h=0, a=0, p=0; snap.forEach(d=>{ const c=d.data(); if(c.saldo<-0.01 && c.vencimento) { if(c.vencimento===hoje)h++; else if(c.vencimento<hoje)a++; else p++; } }); document.getElementById('cntHoje').innerText=h; document.getElementById('cntAtrasados').innerText=a; document.getElementById('cntPrazo').innerText=p; };
 
-  window.carregarProdutos = async () => { const s=document.getElementById('selectProdVenda'); const l=document.getElementById('listaProdutos'); const q=query(collection(db,"produtos")); const sn=await getDocs(q); s.innerHTML=''; l.innerHTML=''; sn.forEach(d=>{ const p=d.data(); s.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; l.innerHTML+=`<li class="list-group-item d-flex justify-content-between">${p.nome} <span>R$${p.preco}</span></li>`; }); };
-  window.addProduto = async () => { const n=document.getElementById('prodNome').value.toUpperCase(); const p=parseFloat(document.getElementById('prodPreco').value); if(n&&p) { await addDoc(collection(db,"produtos"),{nome:n,preco:p}); carregarProdutos(); document.getElementById('prodNome').value=''; document.getElementById('prodPreco').value=''; } };
+  // 4. EDIÇÃO E EXCLUSÃO (MANTIDO DA V13)
+  window.abrirEditarCliente = async (id) => { pedirSenha(async () => { const docRef = doc(db, "clientes", id); const snap = await getDoc(docRef); const c = snap.data(); document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome; document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone; document.getElementById('editVenc').value = c.vencimento || ''; new bootstrap.Modal(document.getElementById('modalEditarCliente')).show(); }); };
+  window.salvarEdicaoCliente = async () => { const id = document.getElementById('editId').value; await updateDoc(doc(db, "clientes", id), { nome: document.getElementById('editNome').value.toUpperCase(), setor: document.getElementById('editSetor').value, telefone: document.getElementById('editTel').value, vencimento: document.getElementById('editVenc').value }); bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); carregarClientes(); alert("Cliente atualizado!"); };
+  
+  // 5. PRODUTOS, CARRINHO E VENDAS
+  window.carregarProdutos = async () => { const s = document.getElementById('selectProdVenda'); const l = document.getElementById('listaProdutos'); const q = query(collection(db, "produtos")); const snap = await getDocs(q); s.innerHTML = ''; l.innerHTML = ''; snap.forEach(d => { const p = d.data(); s.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; l.innerHTML += `<li class="list-group-item d-flex justify-content-between action-hover" style="cursor:pointer" onclick="abrirEditarProd('${d.id}', '${p.nome}', ${p.preco})">${p.nome} <span>R$ ${p.preco} ✏️</span></li>`; }); };
+  window.abrirEditarProd = (id, nome, preco) => { document.getElementById('editProdId').value = id; document.getElementById('editProdNome').value = nome; document.getElementById('editProdPreco').value = preco; new bootstrap.Modal(document.getElementById('modalEditarProd')).show(); };
+  window.salvarEdicaoProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; const nome = document.getElementById('editProdNome').value.toUpperCase(); const preco = parseFloat(document.getElementById('editProdPreco').value); await updateDoc(doc(db, "produtos", id), { nome, preco }); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
+  window.excluirProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; await deleteDoc(doc(db, "produtos", id)); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
+  window.addProduto = async () => { const n = document.getElementById('prodNome').value.toUpperCase(); const p = parseFloat(document.getElementById('prodPreco').value); if(n && p) { await addDoc(collection(db, "produtos"), {nome: n, preco: p}); carregarProdutos(); document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; } };
+  
+  window.addCarrinho = () => { const select = document.getElementById('selectProdVenda'); const qtd = parseFloat(document.getElementById('qtdProdVenda').value); const preco = parseFloat(select.value); const nome = select.options[select.selectedIndex].getAttribute('data-nome'); if(!nome) return; CARRINHO.push({ nome, qtd, total: preco * qtd }); TOTAL_CARRINHO += preco * qtd; atualizarCarrinho(); };
+  window.removerItemCarrinho = (index) => { TOTAL_CARRINHO -= CARRINHO[index].total; CARRINHO.splice(index, 1); atualizarCarrinho(); };
+  function atualizarCarrinho() { const lista = document.getElementById('listaCarrinho'); lista.innerHTML = ''; if (CARRINHO.length === 0) { lista.innerHTML = '<li class="list-group-item text-center small text-muted">Carrinho vazio</li>'; } else { CARRINHO.forEach((i, idx) => { lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center p-1 small"><div>${i.qtd}x ${i.nome}</div><div><span class="me-2">R$ ${i.total.toFixed(2)}</span><button class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemCarrinho(${idx})">X</button></div></li>`; }); } document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
+  
+  window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; TOTAL_CARRINHO=0; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=`Venda: ${nome}`; const bloq=saldo<-1; document.getElementById('boxBloqueio').classList.toggle('d-none',!bloq); document.getElementById('areaVendaInputs').classList.toggle('d-none',bloq); new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
+  window.finalizarVenda = async () => { if(!CARRINHO.length) return alert("Carrinho vazio!"); const id = document.getElementById('idClienteVenda').value; const tipo = document.querySelector('input[name="tipoVenda"]:checked').value; let data = document.getElementById('dataVenda').value; if(!data) data = new Date().toISOString().split('T')[0]; const ref = doc(db, "clientes", id); const snap = await getDoc(ref); let saldo = snap.data().saldo || 0; if(tipo === 'FIADO') { saldo -= TOTAL_CARRINHO; await updateDoc(ref, { saldo, ultima_venda: data }); } else { await updateDoc(ref, { ultima_venda: data }); } const desc = CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', '); await addDoc(collection(db, "transacoes"), { cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:desc, data, timestamp:new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!"); };
+
+  // 6. HISTÓRICO
+  window.verExtrato = async (id) => { const modal = new bootstrap.Modal(document.getElementById('modalExtrato')); modal.show(); const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>'; try { const q = query(collection(db, "transacoes"), where("cliente_id", "==", id)); const snap = await getDocs(q); let dados = []; snap.forEach(d => dados.push({id: d.id, ...d.data()})); dados.sort((a, b) => new Date(b.timestamp.seconds * 1000) - new Date(a.timestamp.seconds * 1000)); tb.innerHTML = ''; if(dados.length === 0) tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Vazio.</td></tr>'; dados.forEach(t => { const dataEx = t.data ? formatarData(t.data) : "??"; const descEx = t.descricao || "-"; const valorEx = t.valor !== undefined ? parseFloat(t.valor).toFixed(2) : "0.00"; const isPgto = t.tipo === 'PAGAMENTO'; const cor = isPgto ? 'text-success' : 'text-danger'; const sinal = isPgto ? '+' : '-'; const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">VISTA</span>' : ''; tb.innerHTML += `<tr><td>${dataEx}</td><td><div class="fw-bold small">${t.tipo}${extra}</div><div class="text-muted small" style="font-size:0.75rem">${descEx}</div></td><td class="${cor} fw-bold text-end">${sinal}${valorEx}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="excluirTransacao('${t.id}', '${id}', ${t.valor}, '${t.tipo}', '${t.metodo}')">🗑️</button></td></tr>`; }); } catch (e) { console.error(e); tb.innerHTML = `<tr><td colspan="4" class="text-danger small">Erro</td></tr>`; } };
+  window.excluirTransacao = (idTransacao, idCliente, valor, tipo, metodo) => { pedirSenha(async () => { const refCli = doc(db, "clientes", idCliente); const snap = await getDoc(refCli); let saldoAtual = snap.data().saldo || 0; if (tipo === 'VENDA' && metodo === 'FIADO') { saldoAtual += valor; } else if (tipo === 'PAGAMENTO') { saldoAtual -= valor; } await updateDoc(refCli, { saldo: saldoAtual }); await deleteDoc(doc(db, "transacoes", idTransacao)); bootstrap.Modal.getInstance(document.getElementById('modalExtrato')).hide(); carregarClientes(); alert("Item excluído!"); }); };
+  function formatarData(iso) { if(!iso) return ""; return iso.split('-').reverse().join('/'); }
+  
+  // OUTRAS
+  window.salvarNovoCliente = async () => { const nome=document.getElementById('novoNome').value.toUpperCase(); const setor=document.getElementById('novoSetor').value; const tel=document.getElementById('novoTel').value; const venc=document.getElementById('novoVencimento').value; if(!nome) return alert("Nome!"); const check=await getDocs(query(collection(db,"clientes"),where("nome","==",nome))); if(!check.empty) return alert("Existe!"); const ref=await addDoc(collection(db,"clientes"),{nome, setor, telefone:tel, saldo:0, vencimento:venc}); await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'INFO', metodo:'SIS', valor:0, descricao:'Inicio', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); alert("Salvo!"); document.querySelector('[data-bs-target="#tab-inicio"]').click(); carregarClientes(); };
+  window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('valorPgto').value=''; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
+  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; if(!v) return alert("Valor?"); const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', metodo:'DINHEIRO', valor:v, descricao:'Pagamento', data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
   window.pedirSenha = (cb) => { SENHA_CALLBACK=cb; document.getElementById('inputSenha').value=''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
-  window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha Errada"); };
+  window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha!"); };
+  window.desbloquearComSenha = () => { pedirSenha(()=>{ document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
   window.processarExcel = () => { const f=document.getElementById('arquivoExcel'); if(!f.files[0]) return alert("Arquivo?"); const r=new FileReader(); r.onload=async(e)=>{ const d=new Uint8Array(e.target.result); const w=XLSX.read(d,{type:'array'}); const s=w.Sheets[w.SheetNames[0]]; const dd=XLSX.utils.sheet_to_json(s); let n=0; for(let lin of dd) { const nm=lin['NOME']; if(!nm) continue; const chk=await getDocs(query(collection(db,"clientes"),where("nome","==",nm.toUpperCase()))); if(chk.empty) { let tot=lin['TOTAL']; if(typeof tot==='string') tot=parseFloat(tot.replace('R$','').replace(',','.')); if(!tot) tot=0; const sal=tot>0?-Math.abs(tot):0; const ref=await addDoc(collection(db,"clientes"),{nome:nm.toUpperCase(), setor:(lin['SETOR']||'GERAL').toUpperCase(), telefone:lin['TELEFONE']||'', saldo:sal, vencimento:null}); if(sal<0) await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'VENDA', metodo:'FIADO', valor:Math.abs(sal), descricao:'Importado', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); n++; } } alert(`Importados: ${n}`); carregarClientes(); }; r.readAsArrayBuffer(f.files[0]); };
+
 </script>
 </body>
 </html>
