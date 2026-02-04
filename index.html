@@ -3,44 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V9.0 (Controle de Vencimento)</title>
+    <title>Gaby Doces - V10.0 (Extrato Corrigido)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
         body { background-color: #f2f4f8; padding-bottom: 100px; font-family: sans-serif; }
         .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
         .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
         
-        /* Cores do Dashboard */
-        .card-dash { cursor: pointer; color: white; border: none; transition: 0.2s; }
-        .card-dash:active { transform: scale(0.98); }
-        .bg-vence-hoje { background: linear-gradient(135deg, #fce38a, #f38181); color: #333; }
-        .bg-atrasado { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-        .bg-ok { background: linear-gradient(135deg, #00b09b, #96c93d); }
-        
-        /* Status dos Clientes */
+        /* Status Cores */
         .card-cliente { border-left: 5px solid #ccc; }
         .status-devendo { border-left-color: #dc3545; background-color: #fff8f8; }
         .status-ok { border-left-color: #198754; background-color: #fff; }
         
-        .badge-vencido { background-color: #dc3545; color: white; animation: pulse 2s infinite; }
-        .badge-hoje { background-color: #ffc107; color: black; font-weight: bold; border: 1px solid #daa520; }
-        .badge-prazo { background-color: #0dcaf0; color: black; }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        .texto-devendo { color: #dc3545; font-weight: 800; }
+        .texto-ok { color: #198754; font-weight: 800; }
+
+        /* Dashboard Cards */
+        .card-dash { cursor: pointer; color: white; border: none; }
+        .bg-hoje { background: linear-gradient(135deg, #fce38a, #f38181); color: #333; }
+        .bg-atrasado { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .bg-prazo { background: linear-gradient(135deg, #00b09b, #96c93d); }
     </style>
 </head>
 <body>
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V9.0</span></h5>
-        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄</button>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V10.0</span></h5>
+        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 Atualizar</button>
     </div>
 
     <ul class="nav nav-pills nav-fill mb-4" id="menuPrincipal" role="tablist">
@@ -48,7 +39,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dash" onclick="carregarDashboard()">📅 Cobrança</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-novo">👤 Novo</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-prod">📦 Prod</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ Config</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ Excel</button></li>
     </ul>
 </div>
 
@@ -73,48 +64,39 @@
     </div>
 
     <div class="tab-pane fade" id="tab-dash">
-        <h6 class="text-muted fw-bold mb-3">Resumo de Cobrança (Hoje: <span id="dataHojeDisplay"></span>)</h6>
-        
+        <h6 class="text-muted fw-bold mb-3">Status de Cobrança</h6>
         <div class="row g-2">
             <div class="col-12">
-                <div class="card card-dash bg-vence-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
+                <div class="card card-dash bg-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="fw-bold mb-0">🟡 VENCE HOJE</h5>
-                            <small>Clientes combinaram pagar hoje</small>
-                        </div>
+                        <h5 class="fw-bold m-0">🟡 VENCE HOJE</h5>
                         <h3 class="fw-bold m-0" id="cntHoje">0</h3>
                     </div>
                 </div>
             </div>
-            
             <div class="col-6">
                 <div class="card card-dash bg-atrasado p-3 shadow" onclick="filtrarRelatorio('ATRASADO')">
                     <small>🔴 Vencidos</small>
-                    <h4 class="fw-bold mb-0" id="cntAtrasados">0</h4>
-                    <span class="badge bg-white text-danger small">Ver Lista</span>
+                    <h4 class="fw-bold m-0" id="cntAtrasados">0</h4>
                 </div>
             </div>
-            
             <div class="col-6">
-                <div class="card card-dash bg-ok p-3 shadow" onclick="filtrarRelatorio('PRAZO')">
+                <div class="card card-dash bg-prazo p-3 shadow" onclick="filtrarRelatorio('PRAZO')">
                     <small>🔵 No Prazo</small>
-                    <h4 class="fw-bold mb-0" id="cntPrazo">0</h4>
-                    <span class="badge bg-white text-success small">Ver Lista</span>
+                    <h4 class="fw-bold m-0" id="cntPrazo">0</h4>
                 </div>
             </div>
         </div>
-
         <div id="areaRelatorio" class="mt-4">
-            <p class="text-center text-muted small">Clique nos cartões acima para ver quem cobrar.</p>
+            <p class="text-center text-muted small">Clique nos cartões para ver a lista.</p>
         </div>
     </div>
 
     <div class="tab-pane fade" id="tab-novo">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h5>Cadastrar Cliente</h5>
-                <input type="text" id="novoNome" class="form-control mb-2" placeholder="Nome Completo">
+                <h5>Novo Cliente</h5>
+                <input type="text" id="novoNome" class="form-control mb-2" placeholder="Nome">
                 <select id="novoSetor" class="form-select mb-2">
                     <option value="IGREJA">Igreja</option>
                     <option value="ROLETE">Rolete</option>
@@ -124,10 +106,8 @@
                     <option value="RUA">Rua/Outros</option>
                 </select>
                 <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone">
-                
-                <label class="fw-bold small text-muted">Data de Vencimento (Combinado):</label>
+                <label class="small text-muted">Vencimento:</label>
                 <input type="date" id="novoVencimento" class="form-control mb-3">
-                
                 <button class="btn btn-primary w-100" onclick="salvarNovoCliente()">Salvar</button>
             </div>
         </div>
@@ -186,6 +166,7 @@
                         <label class="btn btn-outline-success w-50" for="optVista">🟢 À VISTA</label>
                     </div>
                     
+                    <label class="small text-muted">Data da Venda:</label>
                     <input type="date" id="dataVenda" class="form-control mb-2">
                     <button class="btn btn-dark w-100 py-2" onclick="finalizarVenda()">✅ CONCLUIR</button>
                 </div>
@@ -216,12 +197,11 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title">Alterar Data Combinada</h6>
+                <h6 class="modal-title">Alterar Data</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="idClienteVenc">
-                <label>Nova Data:</label>
                 <input type="date" id="novaDataVenc" class="form-control mb-3">
                 <button class="btn btn-primary w-100" onclick="salvarVencimento()">Salvar</button>
             </div>
@@ -230,15 +210,21 @@
 </div>
 
 <div class="modal fade" id="modalExtrato" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title">📜 Histórico</h5>
+                <h5 class="modal-title">📜 Histórico Detalhado</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
-                <table class="table table-striped mb-0 small">
-                    <thead class="table-dark"><tr><th>Data</th><th>Movimentação</th><th>R$</th></tr></thead>
+                <table class="table table-striped mb-0 table-sm" style="font-size: 0.9rem;">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 25%">Data</th>
+                            <th style="width: 50%">O que comprou?</th>
+                            <th style="width: 25%" class="text-end">Valor</th>
+                        </tr>
+                    </thead>
                     <tbody id="tabelaExtrato"></tbody>
                 </table>
             </div>
@@ -285,17 +271,16 @@
       carregarClientes();
       carregarProdutos();
       document.getElementById('dataVenda').valueAsDate = new Date();
-      document.getElementById('dataHojeDisplay').innerText = new Date().toLocaleDateString('pt-BR');
   };
 
-  // 1. CLIENTES COM VENCIMENTO
+  // 1. CLIENTES
   window.carregarClientes = async () => {
       const lista = document.getElementById('listaClientes');
       const busca = document.getElementById('buscaNome').value.toLowerCase();
       const setor = document.getElementById('filtroSetor').value;
       
       lista.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>';
-
+      
       const q = query(collection(db, "clientes"), orderBy("nome"));
       const snap = await getDocs(q);
       lista.innerHTML = '';
@@ -314,21 +299,19 @@
           let textColor = 'texto-ok';
           let badgeVencimento = '';
 
-          // Lógica do Vencimento
           if (devedor) {
               cardColor = 'status-devendo';
               textColor = 'texto-devendo';
-              
               if (c.vencimento) {
                   if (c.vencimento < hoje) {
-                      badgeVencimento = `<span class="badge badge-vencido w-100 mb-2">🔴 ATRASADO (era ${c.vencimento.split('-').reverse().join('/')})</span>`;
+                      badgeVencimento = `<span class="badge bg-danger w-100 mb-2">🔴 ATRASADO (era ${formatarData(c.vencimento)})</span>`;
                   } else if (c.vencimento === hoje) {
-                      badgeVencimento = `<span class="badge badge-hoje w-100 mb-2">🟡 VENCE HOJE! COBRAR!</span>`;
+                      badgeVencimento = `<span class="badge bg-warning text-dark w-100 mb-2">🟡 VENCE HOJE</span>`;
                   } else {
-                      badgeVencimento = `<span class="badge badge-prazo w-100 mb-2">🔵 Vence: ${c.vencimento.split('-').reverse().join('/')}</span>`;
+                      badgeVencimento = `<span class="badge bg-info text-dark w-100 mb-2">🔵 Vence: ${formatarData(c.vencimento)}</span>`;
                   }
               } else {
-                  badgeVencimento = `<span class="badge bg-secondary w-100 mb-2">⚪ Sem data combinada</span>`;
+                  badgeVencimento = `<span class="badge bg-secondary w-100 mb-2">⚪ Sem data</span>`;
               }
           }
 
@@ -342,20 +325,17 @@
                             <h6 class="fw-bold text-truncate" style="max-width: 65%">${c.nome}</h6>
                             <span class="badge bg-secondary" style="font-size: 0.7rem">${c.setor}</span>
                         </div>
-                        
                         ${badgeVencimento}
-                        
                         <div class="${textColor} fs-5 mb-1 d-flex justify-content-between align-items-center">
                             ${txtSaldo}
-                            <button class="btn btn-sm btn-link text-decoration-none" onclick="abrirEditarVenc('${d.id}', '${c.vencimento || ''}')">📅 Mudar Data</button>
+                            <button class="btn btn-sm btn-link text-decoration-none" onclick="abrirEditarVenc('${d.id}', '${c.vencimento || ''}')">📅 Data</button>
                         </div>
-                        
                         <div class="d-flex gap-1 mt-2">
                             <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${d.id}', '${c.nome}', ${saldo})">Vender</button>
                             <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${d.id}')">Receber</button>
                         </div>
                         <div class="text-end mt-1">
-                            <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${d.id}')">📄 Ver Histórico</button>
+                            <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${d.id}')">📄 Detalhes</button>
                         </div>
                     </div>
                 </div>
@@ -363,107 +343,60 @@
       });
   };
 
-  // 2. FUNÇÕES VENCIMENTO
-  window.abrirEditarVenc = (id, dataAtual) => {
-      document.getElementById('idClienteVenc').value = id;
-      document.getElementById('novaDataVenc').value = dataAtual;
-      new bootstrap.Modal(document.getElementById('modalVencimento')).show();
-  };
+  function formatarData(dataISO) {
+      if(!dataISO) return "??/??";
+      return dataISO.split('-').reverse().join('/');
+  }
 
-  window.salvarVencimento = async () => {
-      const id = document.getElementById('idClienteVenc').value;
-      const data = document.getElementById('novaDataVenc').value;
+  // 2. EXTRATO CORRIGIDO
+  window.verExtrato = async (id) => {
+      const modal = new bootstrap.Modal(document.getElementById('modalExtrato'));
+      modal.show();
+      const tb = document.getElementById('tabelaExtrato');
+      tb.innerHTML = '<tr><td colspan="3" class="text-center"><div class="spinner-border text-primary spinner-border-sm"></div> Buscando...</td></tr>';
       
-      const ref = doc(db, "clientes", id);
-      await updateDoc(ref, { vencimento: data });
-      
-      bootstrap.Modal.getInstance(document.getElementById('modalVencimento')).hide();
-      carregarClientes();
-      alert("Data de vencimento atualizada!");
-  };
-
-  window.salvarNovoCliente = async () => {
-      const nome = document.getElementById('novoNome').value.toUpperCase();
-      const setor = document.getElementById('novoSetor').value;
-      const tel = document.getElementById('novoTel').value;
-      const venc = document.getElementById('novoVencimento').value;
-
-      if(!nome) return alert("Nome é obrigatório!");
-      const check = await getDocs(query(collection(db, "clientes"), where("nome", "==", nome)));
-      if(!check.empty) return alert("Já existe!");
-
-      await addDoc(collection(db, "clientes"), { 
-          nome, setor, telefone: tel, saldo: 0, 
-          vencimento: venc // Salva a data combinada
-      });
-      alert("Salvo!");
-      document.querySelector('[data-bs-target="#tab-inicio"]').click();
-      carregarClientes();
-  };
-
-  // 3. DASHBOARD INTELIGENTE
-  window.carregarDashboard = async () => {
-      const hoje = new Date().toISOString().split('T')[0];
-      const q = query(collection(db, "clientes"));
-      const snap = await getDocs(q);
-      
-      let hojeCount = 0;
-      let atrasadoCount = 0;
-      let prazoCount = 0;
-      
-      snap.forEach(d => {
-          const c = d.data();
-          if (c.saldo < -0.01) { // Só quem deve
-              if (c.vencimento) {
-                  if (c.vencimento === hoje) hojeCount++;
-                  else if (c.vencimento < hoje) atrasadoCount++;
-                  else prazoCount++;
-              }
+      try {
+          const q = query(collection(db, "transacoes"), where("cliente_id", "==", id), orderBy("timestamp", "desc"));
+          const snap = await getDocs(q);
+          tb.innerHTML = '';
+          
+          if(snap.empty) {
+              tb.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Nenhum histórico encontrado.</td></tr>';
+              return;
           }
-      });
-      
-      document.getElementById('cntHoje').innerText = hojeCount;
-      document.getElementById('cntAtrasados').innerText = atrasadoCount;
-      document.getElementById('cntPrazo').innerText = prazoCount;
+
+          snap.forEach(d => {
+              const t = d.data();
+              
+              // TRATAMENTO DE ERROS DE DADOS
+              const dataExibicao = t.data ? formatarData(t.data) : "Data?";
+              const descExibicao = t.descricao || "Sem descrição";
+              const valorExibicao = t.valor ? parseFloat(t.valor).toFixed(2) : "0.00";
+              
+              const isPgto = t.tipo === 'PAGAMENTO';
+              const cor = isPgto ? 'text-success' : 'text-danger';
+              const sinal = isPgto ? '+' : '-';
+              
+              // Se for À VISTA, colocamos um aviso, mas não soma como dívida visualmente
+              const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">À VISTA</span>' : '';
+
+              tb.innerHTML += `
+                <tr>
+                    <td>${dataExibicao}</td>
+                    <td>
+                        <div class="fw-bold small">${t.tipo}${extra}</div>
+                        <div class="text-muted small">${descExibicao}</div>
+                    </td>
+                    <td class="${cor} fw-bold text-end">${sinal} R$ ${valorExibicao}</td>
+                </tr>`;
+          });
+      } catch (e) {
+          console.error(e);
+          tb.innerHTML = '<tr><td colspan="3" class="text-danger">Erro ao carregar dados.</td></tr>';
+      }
   };
 
-  window.filtrarRelatorio = async (tipo) => {
-      const area = document.getElementById('areaRelatorio');
-      area.innerHTML = '<div class="spinner-border text-primary"></div>';
-      const hoje = new Date().toISOString().split('T')[0];
-      
-      const q = query(collection(db, "clientes"), orderBy("nome"));
-      const snap = await getDocs(q);
-      
-      let html = '<ul class="list-group">';
-      
-      snap.forEach(d => {
-          const c = d.data();
-          if (c.saldo < -0.01 && c.vencimento) {
-              let mostrar = false;
-              let cor = "";
-              
-              if (tipo === 'HOJE' && c.vencimento === hoje) { mostrar = true; cor = "text-warning"; }
-              if (tipo === 'ATRASADO' && c.vencimento < hoje) { mostrar = true; cor = "text-danger"; }
-              if (tipo === 'PRAZO' && c.vencimento > hoje) { mostrar = true; cor = "text-success"; }
-              
-              if (mostrar) {
-                  html += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${c.nome}</strong> (${c.setor})<br>
-                            <small class="text-muted">Vence: ${c.vencimento.split('-').reverse().join('/')}</small>
-                        </div>
-                        <span class="${cor} fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</span>
-                    </li>`;
-              }
-          }
-      });
-      html += '</ul>';
-      area.innerHTML = html;
-  };
-
-  // --- OUTRAS FUNÇÕES (IGUAIS V8) ---
+  // 3. VENDAS & CARRINHO
   window.abrirVenda = (id, nome, saldo) => {
       CARRINHO = []; TOTAL_CARRINHO = 0; atualizarCarrinho();
       document.getElementById('idClienteVenda').value = id;
@@ -475,6 +408,7 @@
   };
 
   window.desbloquearComSenha = () => { pedirSenha(() => { document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
+  
   window.addCarrinho = () => {
       const select = document.getElementById('selectProdVenda');
       const qtd = parseFloat(document.getElementById('qtdProdVenda').value);
@@ -485,70 +419,64 @@
       TOTAL_CARRINHO += preco * qtd;
       atualizarCarrinho();
   };
+
   function atualizarCarrinho() {
       const lista = document.getElementById('listaCarrinho'); lista.innerHTML = '';
       CARRINHO.forEach((i) => { lista.innerHTML += `<li class="list-group-item d-flex justify-content-between p-1 small">${i.qtd}x ${i.nome} <span>R$ ${i.total.toFixed(2)}</span></li>`; });
       document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`;
   }
+
   window.finalizarVenda = async () => {
       if(CARRINHO.length === 0) return alert("Carrinho vazio!");
       const id = document.getElementById('idClienteVenda').value;
       const tipo = document.querySelector('input[name="tipoVenda"]:checked').value;
-      const data = document.getElementById('dataVenda').value;
+      let data = document.getElementById('dataVenda').value;
+      if (!data) data = new Date().toISOString().split('T')[0]; // Garante data
+
       const ref = doc(db, "clientes", id);
       const snap = await getDoc(ref);
       let saldoAtual = snap.data().saldo || 0;
-      if (tipo === 'FIADO') { saldoAtual -= TOTAL_CARRINHO; await updateDoc(ref, { saldo: saldoAtual, ultima_venda: data }); } 
-      else { await updateDoc(ref, { ultima_venda: data }); }
+      
+      if (tipo === 'FIADO') {
+          saldoAtual -= TOTAL_CARRINHO;
+          await updateDoc(ref, { saldo: saldoAtual, ultima_venda: data });
+      } else {
+          await updateDoc(ref, { ultima_venda: data });
+      }
+
       const desc = CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', ');
-      await addDoc(collection(db, "transacoes"), { cliente_id: id, tipo: 'VENDA', metodo: tipo, valor: TOTAL_CARRINHO, descricao: desc, data: data, timestamp: new Date() });
-      bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Sucesso!");
+      
+      await addDoc(collection(db, "transacoes"), { 
+          cliente_id: id, 
+          tipo: 'VENDA', 
+          metodo: tipo, 
+          valor: TOTAL_CARRINHO, 
+          descricao: desc, 
+          data: data, 
+          timestamp: new Date() 
+      });
+
+      bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide();
+      carregarClientes();
+      alert("Sucesso!");
   };
+
+  // 4. OUTRAS FUNÇÕES
+  window.abrirEditarVenc = (id, dataAtual) => { document.getElementById('idClienteVenc').value = id; document.getElementById('novaDataVenc').value = dataAtual; new bootstrap.Modal(document.getElementById('modalVencimento')).show(); };
+  window.salvarVencimento = async () => { const id = document.getElementById('idClienteVenc').value; const data = document.getElementById('novaDataVenc').value; await updateDoc(doc(db, "clientes", id), { vencimento: data }); bootstrap.Modal.getInstance(document.getElementById('modalVencimento')).hide(); carregarClientes(); };
+  window.salvarNovoCliente = async () => { const nome = document.getElementById('novoNome').value.toUpperCase(); const setor = document.getElementById('novoSetor').value; const tel = document.getElementById('novoTel').value; const venc = document.getElementById('novoVencimento').value; if(!nome) return alert("Nome!"); const check = await getDocs(query(collection(db, "clientes"), where("nome", "==", nome))); if(!check.empty) return alert("Existe!"); await addDoc(collection(db, "clientes"), { nome, setor, telefone: tel, saldo: 0, vencimento: venc }); alert("Salvo!"); document.querySelector('[data-bs-target="#tab-inicio"]').click(); carregarClientes(); };
+  
+  window.carregarDashboard = async () => { /* Logica dashboard V9 */ const hoje = new Date().toISOString().split('T')[0]; const q = query(collection(db, "clientes")); const snap = await getDocs(q); let h=0, a=0, p=0; snap.forEach(d => { const c = d.data(); if (c.saldo < -0.01 && c.vencimento) { if(c.vencimento===hoje) h++; else if(c.vencimento<hoje) a++; else p++; } }); document.getElementById('cntHoje').innerText=h; document.getElementById('cntAtrasados').innerText=a; document.getElementById('cntPrazo').innerText=p; };
+  window.filtrarRelatorio = async (tipo) => { const area = document.getElementById('areaRelatorio'); area.innerHTML='Carregando...'; const hoje = new Date().toISOString().split('T')[0]; const q = query(collection(db, "clientes"), orderBy("nome")); const snap = await getDocs(q); let html = '<ul class="list-group">'; snap.forEach(d => { const c = d.data(); if(c.saldo<-0.01 && c.vencimento) { let show=false; if(tipo==='HOJE' && c.vencimento===hoje) show=true; if(tipo==='ATRASADO' && c.vencimento<hoje) show=true; if(tipo==='PRAZO' && c.vencimento>hoje) show=true; if(show) html+=`<li class="list-group-item d-flex justify-content-between"><div><strong>${c.nome}</strong><br><small>Vence: ${formatarData(c.vencimento)}</small></div><span class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</span></li>`; } }); html+='</ul>'; area.innerHTML=html; };
 
   window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value = id; document.getElementById('valorPgto').value = ''; document.getElementById('dataPgto').valueAsDate = new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
-  window.confirmarPagamento = async () => {
-      const id = document.getElementById('idClientePgto').value; const valor = parseFloat(document.getElementById('valorPgto').value); const data = document.getElementById('dataPgto').value;
-      if(!valor) return alert("Valor inválido");
-      const ref = doc(db, "clientes", id); const snap = await getDoc(ref); await updateDoc(ref, { saldo: (snap.data().saldo || 0) + valor });
-      await addDoc(collection(db, "transacoes"), { cliente_id: id, tipo: 'PAGAMENTO', metodo: 'DINHEIRO', valor: valor, descricao: 'Pagamento Recebido', data: data, timestamp: new Date() });
-      bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!");
-  };
-
-  window.verExtrato = async (id) => {
-      const modal = new bootstrap.Modal(document.getElementById('modalExtrato')); modal.show();
-      const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = ''; 
-      const q = query(collection(db, "transacoes"), where("cliente_id", "==", id), orderBy("timestamp", "desc"));
-      const snap = await getDocs(q);
-      snap.forEach(d => {
-          const t = d.data();
-          const isPgto = t.tipo === 'PAGAMENTO'; const cor = isPgto ? 'text-success' : 'text-danger'; const sinal = isPgto ? '+' : '-'; const obs = t.metodo === 'VISTA' ? ' <span class="badge bg-success">À Vista</span>' : '';
-          tb.innerHTML += `<tr><td>${t.data.split('-').reverse().join('/')}</td><td><strong class="small">${t.tipo}${obs}</strong><br><small class="text-muted">${t.descricao}</small></td><td class="${cor} fw-bold text-end">${sinal} R$ ${t.valor.toFixed(2)}</td></tr>`;
-      });
-  };
-
+  window.confirmarPagamento = async () => { const id = document.getElementById('idClientePgto').value; const valor = parseFloat(document.getElementById('valorPgto').value); const data = document.getElementById('dataPgto').value; if(!valor) return alert("Valor?"); const ref = doc(db, "clientes", id); const snap = await getDoc(ref); await updateDoc(ref, { saldo: (snap.data().saldo || 0) + valor }); await addDoc(collection(db, "transacoes"), { cliente_id: id, tipo: 'PAGAMENTO', metodo: 'DINHEIRO', valor: valor, descricao: 'Pagamento Recebido', data: data, timestamp: new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
+  
   window.carregarProdutos = async () => { const sel = document.getElementById('selectProdVenda'); const lst = document.getElementById('listaProdutos'); const q = query(collection(db, "produtos")); const snap = await getDocs(q); sel.innerHTML = ''; lst.innerHTML = ''; snap.forEach(d => { const p = d.data(); sel.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; lst.innerHTML+=`<li class="list-group-item d-flex justify-content-between">${p.nome} <span>R$${p.preco}</span></li>`; }); };
   window.addProduto = async () => { const nome = document.getElementById('prodNome').value.toUpperCase(); const preco = parseFloat(document.getElementById('prodPreco').value); if(nome && preco) { await addDoc(collection(db, "produtos"), {nome, preco}); carregarProdutos(); document.getElementById('prodNome').value=''; document.getElementById('prodPreco').value=''; } };
   window.pedirSenha = (cb) => { SENHA_CALLBACK = cb; document.getElementById('inputSenha').value=''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
   window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha errada!"); };
-  window.processarExcel = () => {
-    const fileInput = document.getElementById('arquivoExcel'); if(!fileInput.files[0]) return alert("Selecione arquivo!");
-    const reader = new FileReader(); reader.onload = async (e) => {
-        const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type:'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]]; const dados = XLSX.utils.sheet_to_json(sheet);
-        let n=0;
-        for(let r of dados) { const nome=r['NOME']; if(!nome) continue;
-            const check = await getDocs(query(collection(db,"clientes"), where("nome","==",nome.toUpperCase())));
-            if(check.empty) {
-                let total = r['TOTAL']; if(typeof total==='string') total=parseFloat(total.replace('R$','').replace(',','.')); if(!total) total=0;
-                const saldo = total>0 ? -Math.abs(total) : 0;
-                const ref = await addDoc(collection(db,"clientes"), { nome:nome.toUpperCase(), setor:(r['SETOR']||'GERAL').toUpperCase(), telefone:r['TELEFONE']||'', saldo, vencimento: null });
-                if(saldo<0) await addDoc(collection(db,"transacoes"),{ cliente_id:ref.id, tipo:'VENDA', metodo:'FIADO', valor:Math.abs(saldo), descricao:'Importado', data:new Date().toISOString().split('T')[0], timestamp:new Date() });
-                n++;
-            }
-        }
-        alert(`Importados: ${n}`); carregarClientes();
-    }; reader.readAsArrayBuffer(fileInput.files[0]);
-  };
+  window.processarExcel = () => { /* Logica de importacao V9 */ const fileInput = document.getElementById('arquivoExcel'); if(!fileInput.files[0]) return alert("Arquivo?"); const reader = new FileReader(); reader.onload = async (e) => { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type:'array'}); const sheet = workbook.Sheets[workbook.SheetNames[0]]; const dados = XLSX.utils.sheet_to_json(sheet); let n=0; for(let r of dados) { const nome=r['NOME']; if(!nome) continue; const check = await getDocs(query(collection(db,"clientes"), where("nome","==",nome.toUpperCase()))); if(check.empty) { let total = r['TOTAL']; if(typeof total==='string') total=parseFloat(total.replace('R$','').replace(',','.')); if(!total) total=0; const saldo = total>0 ? -Math.abs(total) : 0; const ref = await addDoc(collection(db,"clientes"), { nome:nome.toUpperCase(), setor:(r['SETOR']||'GERAL').toUpperCase(), telefone:r['TELEFONE']||'', saldo, vencimento: null }); if(saldo<0) await addDoc(collection(db,"transacoes"),{ cliente_id:ref.id, tipo:'VENDA', metodo:'FIADO', valor:Math.abs(saldo), descricao:'Importado', data:new Date().toISOString().split('T')[0], timestamp:new Date() }); n++; } } alert(`Importados: ${n}`); carregarClientes(); }; reader.readAsArrayBuffer(fileInput.files[0]); };
 </script>
 </body>
 </html>
