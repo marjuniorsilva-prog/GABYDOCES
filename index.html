@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V18 + V20 Premium</title>
+    <title>Gaby Doces - V23.0 Final</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -12,22 +12,22 @@
         .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
         .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
         
+        .btn-sub-cobranca { border: 1px solid #ddd; background: white; color: #555; font-size: 0.8rem; padding: 10px 2px; flex: 1; }
+        .btn-sub-cobranca.active { background: #6c757d; color: white; }
+        
         .card-cliente { border-left: 5px solid #ccc; background: white; border-radius: 8px; }
         .status-devendo { border-left-color: #dc3545; background-color: #fff5f5; }
         .status-ok { border-left-color: #198754; }
         
-        .btn-sub-cobranca { border: 1px solid #ddd; background: white; color: #555; font-size: 0.8rem; padding: 10px 2px; flex: 1; }
-        .btn-sub-cobranca.active { background: #6c757d; color: white; }
-        
-        .tag-helper { background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; cursor: help; }
-        .total-info { background: #343a40; color: white; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px; }
+        .tag-helper { background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; }
+        .total-info { background: #343a40; color: white; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V22.0 Master</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V23.0 Final</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -55,7 +55,7 @@
     </div>
 
     <div class="tab-pane fade" id="tab-cobranca">
-        <div class="btn-group w-100 mb-3" role="group">
+        <div class="btn-group w-100 mb-3 shadow-sm" role="group">
             <button class="btn btn-sub-cobranca active" id="btn-sub-recebimentos" onclick="abrirSubAba('recebimentos')">Pagos</button>
             <button class="btn btn-sub-cobranca" id="btn-sub-hoje" onclick="abrirSubAba('hoje')">Vence Hoje</button>
             <button class="btn btn-sub-cobranca" id="btn-sub-avencer" onclick="abrirSubAba('avencer')">A Vencer</button>
@@ -73,32 +73,32 @@
                 <option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua/Outros</option>
             </select>
             <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone com DDD">
-            <label class="small fw-bold">Dia Fixo de Pagamento (Todo mês):</label>
+            <label class="small fw-bold">Dia de Pagamento (Fixo mensal):</label>
             <select id="novoDiaPag" class="form-select mb-3"></select>
             <button class="btn btn-primary w-100 fw-bold" onclick="salvarNovoCliente()">💾 SALVAR CLIENTE</button>
         </div>
     </div>
 
     <div class="tab-pane fade" id="tab-prod">
-        <div class="input-group mb-3">
-            <input type="text" id="prodNome" class="form-control" placeholder="Produto">
-            <input type="number" id="prodPreco" class="form-control" placeholder="R$">
+        <div class="input-group mb-3 shadow-sm">
+            <input type="text" id="prodNome" class="form-control border-0" placeholder="Produto">
+            <input type="number" id="prodPreco" class="form-control border-0" placeholder="R$">
             <button class="btn btn-success" onclick="addProduto()">Add</button>
         </div>
-        <ul id="listaProdutos" class="list-group shadow-sm"></ul>
+        <ul id="listaProdutos" class="list-group shadow-sm border-0"></ul>
     </div>
 
     <div class="tab-pane fade" id="tab-config">
-        <button class="btn btn-dark w-100 mb-4 fw-bold" onclick="exportarExcelRelatorio()">📥 BAIXAR RELATÓRIO COMPLETO (EXCEL)</button>
+        <button class="btn btn-dark w-100 mb-4 fw-bold shadow-sm" onclick="exportarExcelRelatorio()">📥 BAIXAR RELATÓRIO COMPLETO (EXCEL)</button>
         
         <div class="card p-3 shadow-sm border-0">
-            <h6 class="fw-bold">Personalizar Mensagens de Cobrança</h6>
+            <h6 class="fw-bold">Personalizar Mensagens (Etiquetas V20)</h6>
             <div class="mb-2"><label class="small fw-bold">Sua Chave PIX:</label><input type="text" id="cfgPix" class="form-control" onchange="salvarTemplates()"></div>
-            <div class="mb-2"><label class="small fw-bold">Mensagem: Vence Hoje</label><textarea id="msgHoje" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-            <div class="mb-2"><label class="small fw-bold">Mensagem: Atrasados</label><textarea id="msgAtrasado" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-            <div class="mb-2"><label class="small fw-bold">Mensagem: A Vencer (Lembrete)</label><textarea id="msgAvencer" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
+            <div class="mb-2"><label class="small fw-bold">Vence Hoje:</label><textarea id="msgHoje" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
+            <div class="mb-2"><label class="small fw-bold">Atrasados:</label><textarea id="msgAtrasado" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
+            <div class="mb-2"><label class="small fw-bold">A Vencer:</label><textarea id="msgAvencer" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
             <div class="p-2 bg-light small rounded mt-2">
-                <strong>Etiquetas:</strong> <span class="tag-helper">{nome}</span> <span class="tag-helper">{valor}</span> <span class="tag-helper">{vencimento}</span> <span class="tag-helper">{produtos}</span> <span class="tag-helper">{pix}</span>
+                <strong>Tags:</strong> <span class="tag-helper">{nome}</span> <span class="tag-helper">{valor}</span> <span class="tag-helper">{vencimento}</span> <span class="tag-helper">{produtos}</span> <span class="tag-helper">{pix}</span>
             </div>
         </div>
     </div>
@@ -106,7 +106,9 @@
 
 <div class="modal fade" id="modalExtrato" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5>📜 Histórico Detalhado</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><table class="table table-striped mb-0 table-sm"><thead class="table-dark"><tr><th>Data</th><th>Descrição</th><th class="text-end">Valor</th><th>Ação</th></tr></thead><tbody id="tabelaExtrato"></tbody></table></div></div></div></div>
 <div class="modal fade" id="modalEditarCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning"><h5>✏️ Editar Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="editId"><input type="text" id="editNome" class="form-control mb-2"><select id="editSetor" class="form-select mb-2"><option value="IGREJA">Igreja</option><option value="ROLETE">Rolete</option><option value="TABATA">Tabata</option><option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua</option></select><input type="text" id="editTel" class="form-control mb-2"><label class="small fw-bold">Dia de Pagamento:</label><select id="editDiaPag" class="form-select mb-3"></select><button class="btn btn-dark w-100" onclick="salvarEdicaoCliente()">Salvar Alterações</button></div></div></div></div>
+
 <div class="modal fade" id="modalVenda" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-light"><h5>Venda: <span id="tituloVenda"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="idClienteVenda"><div id="areaVendaInputs"><div class="input-group mb-2"><select id="selectProdVenda" class="form-select"></select><input type="number" id="qtdProdVenda" class="form-control" value="1" style="max-width: 60px;"><button class="btn btn-primary" onclick="addCarrinho()">➕</button></div><ul class="list-group mb-2" id="listaCarrinho" style="max-height: 150px; overflow-y: auto;"></ul><h4 class="text-end fw-bold text-primary" id="totalCarrinho">R$ 0,00</h4><div class="d-flex gap-2 mb-3 mt-3"><input type="radio" class="btn-check" name="tipoVenda" id="optFiado" value="FIADO" checked><label class="btn btn-outline-danger w-50" for="optFiado">FIADO</label><input type="radio" class="btn-check" name="tipoVenda" id="optVista" value="VISTA"><label class="btn btn-outline-success w-50" for="optVista">À VISTA</label></div><input type="date" id="dataVenda" class="form-control mb-2"><button class="btn btn-dark w-100 py-2" onclick="finalizarVenda()">CONCLUIR</button></div></div></div></div></div>
+
 <div class="modal fade" id="modalPagamento" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header bg-success text-white"><h5>💰 Receber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="idClientePgto"><input type="number" id="valorPgto" class="form-control fs-2 text-center mb-2"><input type="date" id="dataPgto" class="form-control mb-3"><button class="btn btn-success w-100" onclick="confirmarPagamento()">CONFIRMAR</button></div></div></div></div>
 <div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1080;"><div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content border-danger"><div class="modal-body text-center"><strong>Senha Restrita:</strong><input type="password" id="inputSenha" class="form-control text-center my-2"><button class="btn btn-danger w-100" onclick="validarSenha()">OK</button></div></div></div></div>
 
@@ -144,7 +146,7 @@
       sels.forEach(s => { for(let i=1; i<=31; i++) s.innerHTML += `<option value="${i}">Dia ${i}</option>`; });
   }
 
-  // Lógica V18: Calendário Real (Handling Short Months)
+  // Lógica de Calendário Real
   function calcularVencimento(diaPag, ultimaVenda) {
       if (!diaPag) return null;
       let d = ultimaVenda ? new Date(ultimaVenda + 'T00:00:00') : new Date();
@@ -198,83 +200,116 @@
       });
   };
 
-  // --- COBRANÇA (V20) ---
+  // --- COBRANÇA (V23 COM TOTAIS EM TODAS AS ABAS) ---
   window.abrirSubAba = async (tipo) => {
       document.querySelectorAll('.btn-sub-cobranca').forEach(b => b.classList.remove('active'));
       document.getElementById(`btn-sub-${tipo}`).classList.add('active');
       const area = document.getElementById('conteudoCobranca');
-      area.innerHTML = '<div class="text-center mt-3"><div class="spinner-border spinner-border-sm"></div></div>';
-      
+      area.innerHTML = 'Carregando...';
       const snapCli = await getDocs(collection(db, "clientes"));
       let clientes = []; snapCli.forEach(d => clientes.push({id: d.id, ...d.data()}));
+      const hoje = new Date().toISOString().split('T')[0];
       let html = "";
+      let somaTotal = 0;
 
       if (tipo === 'recebimentos') {
           const snapT = await getDocs(query(collection(db, "transacoes"), where("tipo", "==", "PAGAMENTO")));
-          html += '<h6>Pagamentos Recebidos</h6><ul class="list-group">';
+          let transList = "";
           snapT.forEach(p => {
-              const cli = clientes.find(c => c.id === p.data().cliente_id)?.nome || "??";
-              html += `<li class="list-group-item d-flex justify-content-between"><div>${cli}<br><small>${p.data().data}</small></div><b>R$ ${p.data().valor.toFixed(2)}</b></li>`;
+              const d = p.data();
+              const cli = clientes.find(c => c.id === d.cliente_id)?.nome || "??";
+              somaTotal += d.valor;
+              transList += `<li class="list-group-item d-flex justify-content-between"><div>${cli}<br><small>${d.data.split('-').reverse().join('/')}</small></div><b>R$ ${d.valor.toFixed(2)}</b></li>`;
           });
-          html += '</ul>';
+          html = `<div class="total-info"><h6>Total Recebido (Pagos)</h6><h3>R$ ${somaTotal.toFixed(2)}</h3></div><ul class="list-group">${transList}</ul>`;
       } else {
-          let soma = 0;
+          let cardsHtml = "";
           for (let c of clientes) {
               if (c.saldo < -0.01 && c.dia_pagamento) {
                   const venc = calcularVencimento(parseInt(c.dia_pagamento), c.ultima_venda);
                   if (obterEstadoVencimento(venc) === tipo) {
-                      soma += Math.abs(c.saldo);
-                      html += `
+                      somaTotal += Math.abs(c.saldo);
+                      cardsHtml += `
                         <div class="card p-2 mb-2 border-0 shadow-sm d-flex flex-row justify-content-between align-items-center">
-                            <div><strong>${c.nome}</strong><br><small class="text-danger">R$ ${Math.abs(c.saldo).toFixed(2)}</small><br><small class="text-muted">Venc: ${venc.toLocaleDateString('pt-BR')}</small></div>
+                            <div><strong>${c.nome}</strong><br><small class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</small><br><small class="text-muted" style="font-size:0.7rem">Venc: ${venc.toLocaleDateString('pt-BR')}</small></div>
                             <button class="btn btn-success btn-sm" onclick="prepararZap('${c.id}', '${tipo}', '${venc.toLocaleDateString('pt-BR')}')"><i class="bi bi-whatsapp"></i></button>
                         </div>`;
                   }
               }
           }
-          if(tipo === 'avencer') html = `<div class="total-info"><h6>Total Previsto</h6><h3>R$ ${soma.toFixed(2)}</h3></div>` + html;
+          let tituloPainel = (tipo === 'hoje') ? 'Total Vencendo Hoje' : (tipo === 'atrasados' ? 'Total em Atraso' : 'Total Previsto (A Vencer)');
+          html = `<div class="total-info"><h6>${tituloPainel}</h6><h3>R$ ${somaTotal.toFixed(2)}</h3></div>` + cardsHtml;
       }
-      area.innerHTML = html || "Nada por aqui.";
+      area.innerHTML = html || "<p class='text-center mt-4 text-muted'>Nenhum registro encontrado.</p>";
   };
 
-  // --- WHATSAPP COM ETIQUETAS (V20) ---
+  // --- WHATSAPP E EXCEL (BASE V20) ---
   window.prepararZap = async (id, tipo, dataVenc) => {
       const snap = await getDoc(doc(db, "clientes", id));
       const c = snap.data();
-      const qT = query(collection(db, "transacoes"), where("cliente_id", "==", id), where("tipo", "==", "VENDA"));
-      const sT = await getDocs(qT);
+      const sT = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", id), where("tipo", "==", "VENDA")));
       let prods = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') prods.push(t.data().descricao); });
 
       let template = TEMPLATES[tipo === 'atrasados' ? 'atrasado' : (tipo === 'hoje' ? 'hoje' : 'avencer')];
-      let msg = template
-          .replace(/{nome}/g, c.nome)
-          .replace(/{valor}/g, Math.abs(c.saldo).toFixed(2))
-          .replace(/{vencimento}/g, dataVenc)
-          .replace(/{produtos}/g, prods.join(', '))
-          .replace(/{pix}/g, TEMPLATES.pix);
-      
+      let msg = template.replace(/{nome}/g, c.nome).replace(/{valor}/g, Math.abs(c.saldo).toFixed(2)).replace(/{vencimento}/g, dataVenc).replace(/{produtos}/g, prods.join(', ')).replace(/{pix}/g, TEMPLATES.pix);
       window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // --- EXPORTAR EXCEL COMPLETO (V20) ---
   window.exportarExcelRelatorio = async () => {
       const snapCli = await getDocs(collection(db, "clientes"));
       let dados = [];
       for (let d of snapCli.docs) {
           const c = d.data();
           if (c.saldo < -0.01) {
-              const qT = query(collection(db, "transacoes"), where("cliente_id", "==", d.id), where("tipo", "==", "VENDA"));
-              const sT = await getDocs(qT);
+              const sT = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", d.id), where("tipo", "==", "VENDA")));
               let pList = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') pList.push(t.data().descricao); });
               dados.push({ "CLIENTE": c.nome, "TELEFONE": c.telefone, "SALDO DEVEDOR": Math.abs(c.saldo).toFixed(2), "PRODUTOS COMPRADOS": pList.join(' | ') });
           }
       }
       const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-      XLSX.writeFile(wb, "GabyDoces_Cobranca.xlsx");
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Cobrança");
+      XLSX.writeFile(wb, "GabyDoces_Auditoria.xlsx");
   };
 
-  // --- FUNÇÕES DE SUPORTE ---
+  // --- CARRINHO COM BOTÃO X ---
+  window.addCarrinho = () => {
+      const s = document.getElementById('selectProdVenda');
+      const q = parseFloat(document.getElementById('qtdProdVenda').value);
+      const n = s.options[s.selectedIndex].getAttribute('data-nome');
+      const p = parseFloat(s.value);
+      if(!n) return;
+      CARRINHO.push({ nome: n, qtd: q, total: p * q });
+      TOTAL_CARRINHO += p * q;
+      atualizarCarrinho();
+  };
+
+  window.removerItemCarrinho = (index) => {
+      TOTAL_CARRINHO -= CARRINHO[index].total;
+      CARRINHO.splice(index, 1);
+      atualizarCarrinho();
+  };
+
+  function atualizarCarrinho() {
+      const l = document.getElementById('listaCarrinho');
+      l.innerHTML = '';
+      if (CARRINHO.length === 0) {
+          l.innerHTML = '<li class="list-group-item text-center small text-muted">Vazio</li>';
+      } else {
+          CARRINHO.forEach((i, idx) => {
+              l.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center p-1 small border-0 bg-light mb-1 rounded">
+                    <div>${i.qtd}x ${i.nome}</div>
+                    <div>
+                        <span class="me-2 fw-bold text-dark">R$ ${i.total.toFixed(2)}</span>
+                        <button class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemCarrinho(${idx})">x</button>
+                    </div>
+                </li>`;
+          });
+      }
+      document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`;
+  }
+
+  // --- FUNÇÕES DE RESTAURAÇÃO ---
   window.salvarNovoCliente = async () => {
       const nome = document.getElementById('novoNome').value.toUpperCase();
       const setor = document.getElementById('novoSetor').value;
@@ -287,10 +322,8 @@
 
   window.abrirEditarCliente = async (id) => {
       const s = await getDoc(doc(db, "clientes", id)); const c = s.data();
-      document.getElementById('editId').value = id;
-      document.getElementById('editNome').value = c.nome;
-      document.getElementById('editSetor').value = c.setor;
-      document.getElementById('editTel').value = c.telefone;
+      document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome;
+      document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone;
       document.getElementById('editDiaPag').value = c.dia_pagamento || '';
       new bootstrap.Modal(document.getElementById('modalEditarCliente')).show();
   };
@@ -308,7 +341,7 @@
 
   window.verExtrato = async (id) => {
       new bootstrap.Modal(document.getElementById('modalExtrato')).show();
-      const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = 'Carregando...';
+      const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = '...';
       const snap = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", id)));
       let dados = []; snap.forEach(d => dados.push({id: d.id, ...d.data()}));
       dados.sort((a,b) => b.timestamp - a.timestamp);
@@ -332,15 +365,13 @@
       await setDoc(doc(db, "config", "templates"), TEMPLATES); 
   };
 
-  // --- OUTROS (PRODUTOS, VENDAS, PAGAMENTOS) ---
+  // --- OUTROS ---
   window.addProduto = async () => { const n=document.getElementById('prodNome').value.toUpperCase(); const p=parseFloat(document.getElementById('prodPreco').value); if(n&&p) await addDoc(collection(db,"produtos"),{nome:n, preco:p}); carregarProdutos(); };
-  window.carregarProdutos = async () => { const s=document.getElementById('selectProdVenda'); const l=document.getElementById('listaProdutos'); const sn=await getDocs(collection(db,"produtos")); s.innerHTML=''; l.innerHTML=''; sn.forEach(d=>{ const p=d.data(); s.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`; l.innerHTML+=`<li class="list-group-item">${p.nome} - R$ ${p.preco}</li>`; }); };
-  window.addCarrinho = () => { const s=document.getElementById('selectProdVenda'); const q=parseFloat(document.getElementById('qtdProdVenda').value); const n=s.options[s.selectedIndex].getAttribute('data-nome'); CARRINHO.push({nome:n, qtd:q, total: parseFloat(s.value)*q}); TOTAL_CARRINHO += parseFloat(s.value)*q; atualizarCarrinho(); };
-  function atualizarCarrinho() { const l=document.getElementById('listaCarrinho'); l.innerHTML=''; CARRINHO.forEach(i=>{ l.innerHTML+=`<li class="list-group-item d-flex justify-content-between p-1 small">${i.qtd}x ${i.nome} <b>R$ ${i.total.toFixed(2)}</b></li>`; }); document.getElementById('totalCarrinho').innerText=`R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
+  window.carregarProdutos = async () => { const s=document.getElementById('selectProdVenda'); const l=document.getElementById('listaProdutos'); const sn=await getDocs(collection(db,"produtos")); s.innerHTML=''; l.innerHTML=''; sn.forEach(d=>{ const p=d.data(); s.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`; l.innerHTML+=`<li class="list-group-item d-flex justify-content-between"><span>${p.nome}</span><b>R$ ${p.preco.toFixed(2)}</b></li>`; }); };
   window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=nome; new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
-  window.finalizarVenda = async () => { const id=document.getElementById('idClienteVenda').value; const tipo=document.querySelector('input[name="tipoVenda"]:checked').value; const data=document.getElementById('dataVenda').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); let saldo=s.data().saldo||0; if(tipo==='FIADO') saldo-=TOTAL_CARRINHO; await updateDoc(ref,{saldo, ultima_venda:data}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:CARRINHO.map(i=>`${i.qtd}x ${i.nome}`).join(','), data, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); };
+  window.finalizarVenda = async () => { const id=document.getElementById('idClienteVenda').value; const tipo=document.querySelector('input[name="tipoVenda"]:checked').value; const data=document.getElementById('dataVenda').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); let saldo=s.data().saldo||0; if(tipo==='FIADO') saldo-=TOTAL_CARRINHO; await updateDoc(ref,{saldo, ultima_venda:data}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:CARRINHO.map(i=>`${i.qtd}x ${i.nome}`).join(','), data, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!"); };
   window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
-  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', valor:v, data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); };
+  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', valor:v, data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
   window.pedirSenha = (cb) => { SENHA_CALLBACK=cb; document.getElementById('inputSenha').value=''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
   window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha!"); };
   window.excluirTransacao = (tid, cid, val, tipo) => { pedirSenha(async () => { const ref=doc(db,"clientes",cid); const s=await getDoc(ref); let sal=s.data().saldo; if(tipo==='VENDA') sal+=val; else sal-=val; await updateDoc(ref,{saldo:sal}); await deleteDoc(doc(db,"transacoes",tid)); carregarClientes(); alert("Removido!"); }); };
