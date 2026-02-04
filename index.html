@@ -3,301 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V18.0 (Calendário Real)</title>
+    <title>Gaby Doces - V20.0 (Sistema Master)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        body { background-color: #f8f9fa; padding-bottom: 100px; font-family: sans-serif; }
-        .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
-        .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
+        body { background-color: #f4f7f6; padding-bottom: 100px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; border-radius: 20px; }
+        .nav-pills .nav-link { background: white; color: #666; margin: 0 4px; border: 1px solid #eee; border-radius: 20px; transition: 0.3s; }
         
-        .card-cliente { border-left: 5px solid #ccc; transition: 0.2s; }
-        .status-devendo { border-left-color: #dc3545; background-color: #fff5f5; }
-        .status-ok { border-left-color: #198754; background-color: #fff; }
-        .texto-devendo { color: #dc3545; font-weight: 800; }
-        .texto-ok { color: #198754; font-weight: 800; }
-
-        .card-dash { cursor: pointer; color: white; border: none; }
-        .bg-hoje { background: linear-gradient(135deg, #fce38a, #f38181); color: #333; }
-        .bg-atrasado { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-        .bg-prazo { background: linear-gradient(135deg, #00b09b, #96c93d); }
+        /* Cobrança UI */
+        .btn-sub-cobranca { border: 1px solid #ddd; background: white; color: #555; font-size: 0.75rem; padding: 12px 2px; flex: 1; font-weight: 600; }
+        .btn-sub-cobranca.active { background: #d63384; color: white; border-color: #d63384; }
+        
+        .card-cobranca { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 10px; background: white; }
+        .total-box { background: linear-gradient(135deg, #343a40, #212529); color: white; border-radius: 15px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        
+        .card-cliente { border-radius: 12px; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-left: 6px solid #ccc; }
+        .status-devendo { border-left-color: #dc3545; }
+        .status-ok { border-left-color: #198754; }
+        
+        /* Configurações */
+        .tag-helper { background: #e9ecef; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V18.0 Real</span></h5>
-        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V20.0</span></h5>
+        <button class="btn btn-sm btn-light border-0 shadow-sm" onclick="location.reload()">🔄 Atualizar</button>
     </div>
 
-    <ul class="nav nav-pills nav-fill mb-4" id="menuPrincipal" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-inicio">🏠 Clientes</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dash" onclick="carregarDashboard()">📅 Cobrança</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-novo">👤 Novo</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-prod">📦 Prod</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ Excel</button></li>
+    <ul class="nav nav-pills nav-fill mb-4 shadow-sm p-1 bg-white" style="border-radius: 25px;" id="menuPrincipal" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-inicio">🏠 Início</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cobranca" onclick="abrirSubAba('hoje')">💰 Cobrança</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ Config</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-prod">📦 Itens</button></li>
     </ul>
 </div>
 
 <div class="tab-content container">
 
     <div class="tab-pane fade show active" id="tab-inicio">
-        <div class="input-group mb-3">
-            <input type="text" id="buscaNome" class="form-control" placeholder="🔍 Buscar..." onkeyup="carregarClientes()">
-            <select id="filtroSetor" class="form-select" style="max-width: 130px;" onchange="carregarClientes()">
-                <option value="">Setor</option>
-                <option value="IGREJA">Igreja</option>
-                <option value="ROLETE">Rolete</option>
-                <option value="TABATA">Tabata</option>
-                <option value="ANDERSON">Anderson</option>
-                <option value="BIANCA">Bianca</option>
-                <option value="RUA">Rua</option>
-            </select>
+        <div class="d-flex gap-2 mb-3">
+            <input type="text" id="buscaNome" class="form-control shadow-sm border-0" placeholder="🔍 Buscar cliente..." onkeyup="carregarClientes()">
+            <button class="btn btn-primary shadow-sm" data-bs-toggle="tab" data-bs-target="#tab-novo-cli">+</button>
         </div>
-        <div id="listaClientes" class="row pb-5">
-            <div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>
-        </div>
+        <div id="listaClientes" class="row pb-5"></div>
     </div>
 
-    <div class="tab-pane fade" id="tab-dash">
-        <h6 class="text-muted fw-bold mb-3">Cobrança Mensal (Calendário Real)</h6>
-        <div class="row g-2">
-            <div class="col-12">
-                <div class="card card-dash bg-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="fw-bold m-0">🟡 VENCE HOJE</h5>
-                            <small>Cobrar Agora</small>
-                        </div>
-                        <h3 class="fw-bold m-0" id="cntHoje">0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="card card-dash bg-atrasado p-3 shadow" onclick="filtrarRelatorio('ATRASADO')">
-                    <small>🔴 Atrasados</small>
-                    <h4 class="fw-bold m-0" id="cntAtrasados">0</h4>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="card card-dash bg-prazo p-3 shadow" onclick="filtrarRelatorio('PRAZO')">
-                    <small>🔵 Mês que vem</small>
-                    <h4 class="fw-bold m-0" id="cntPrazo">0</h4>
-                </div>
-            </div>
+    <div class="tab-pane fade" id="tab-cobranca">
+        <div class="btn-group w-100 mb-3 shadow-sm rounded overflow-hidden" role="group">
+            <button class="btn btn-sub-cobranca active" id="btn-sub-hoje" onclick="abrirSubAba('hoje')">HOJE</button>
+            <button class="btn btn-sub-cobranca" id="btn-sub-avencer" onclick="abrirSubAba('avencer')">A VENCER</button>
+            <button class="btn btn-sub-cobranca" id="btn-sub-atrasados" onclick="abrirSubAba('atrasados')">ATRASADOS</button>
+            <button class="btn btn-sub-cobranca" id="btn-sub-recebimentos" onclick="abrirSubAba('recebimentos')">PAGOS</button>
         </div>
-        <div id="areaRelatorio" class="mt-4">
-            <p class="text-center text-muted small">Clique nos cartões para ver.</p>
-        </div>
+
+        <div id="conteudoCobranca"></div>
     </div>
 
-    <div class="tab-pane fade" id="tab-novo">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5>Cadastrar Novo</h5>
-                <input type="text" id="novoNome" class="form-control mb-2" placeholder="Nome Completo">
-                <select id="novoSetor" class="form-select mb-2">
-                    <option value="IGREJA">Igreja</option>
-                    <option value="ROLETE">Rolete</option>
-                    <option value="TABATA">Tabata</option>
-                    <option value="ANDERSON">Anderson</option>
-                    <option value="BIANCA">Bianca</option>
-                    <option value="RUA">Rua/Outros</option>
-                </select>
-                <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone (com DDD)">
-                
-                <label class="small text-muted fw-bold">Paga todo dia:</label>
-                <select id="novoDiaPag" class="form-select mb-3">
-                    <option value="">Sem dia fixo</option>
-                    </select>
-                
-                <button class="btn btn-primary w-100" onclick="salvarNovoCliente()">💾 Salvar Cliente</button>
+    <div class="tab-pane fade" id="tab-config">
+        <div class="card p-3 shadow-sm border-0 mb-3">
+            <h6 class="fw-bold"><i class="bi bi-file-earmark-excel"></i> Relatórios Externos</h6>
+            <p class="small text-muted">Baixe a lista de produtos comprados e valores em aberto.</p>
+            <button class="btn btn-dark w-100 mb-2" onclick="exportarExcelRelatorio()">📥 Baixar Planilha de Cobrança (Excel)</button>
+        </div>
+
+        <div class="card p-3 shadow-sm border-0">
+            <h6 class="fw-bold"><i class="bi bi-chat-dots"></i> Personalizar Mensagens</h6>
+            <div class="mb-3">
+                <label class="small fw-bold">Chave PIX:</label>
+                <input type="text" id="cfgPix" class="form-control" placeholder="Seu PIX" onchange="salvarTemplates()">
+            </div>
+            
+            <div class="mb-3">
+                <label class="small fw-bold">Mensagem: Vence Hoje</label>
+                <textarea id="msgHoje" class="form-control small" rows="3" onchange="salvarTemplates()"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold">Mensagem: Atrasados</label>
+                <textarea id="msgAtrasado" class="form-control small" rows="3" onchange="salvarTemplates()"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="small fw-bold">Mensagem: A Vencer (Lembrete)</label>
+                <textarea id="msgAvencer" class="form-control small" rows="3" onchange="salvarTemplates()"></textarea>
+            </div>
+            
+            <div class="p-2 bg-light rounded">
+                <p class="small mb-1 fw-bold">Dica: Use as etiquetas abaixo no texto:</p>
+                <span class="tag-helper">{nome}</span> <span class="tag-helper">{valor}</span> <span class="tag-helper">{vencimento}</span> <span class="tag-helper">{produtos}</span> <span class="tag-helper">{pix}</span>
             </div>
         </div>
     </div>
 
     <div class="tab-pane fade" id="tab-prod">
-        <div class="input-group mb-3">
-            <input type="text" id="prodNome" class="form-control" placeholder="Produto">
-            <input type="number" id="prodPreco" class="form-control" placeholder="R$">
+        <div class="input-group mb-3 shadow-sm">
+            <input type="text" id="prodNome" class="form-control border-0" placeholder="Nome do Doce">
+            <input type="number" id="prodPreco" class="form-control border-0" placeholder="R$">
             <button class="btn btn-success" onclick="addProduto()">Add</button>
         </div>
-        <small class="text-muted d-block mb-2">Clique no produto para Editar ou Excluir.</small>
-        <ul id="listaProdutos" class="list-group shadow-sm"></ul>
+        <ul id="listaProdutos" class="list-group shadow-sm border-0"></ul>
     </div>
-
-    <div class="tab-pane fade" id="tab-config">
-        <div class="card border-warning shadow-sm">
-            <div class="card-header bg-warning fw-bold">📥 Importar Excel</div>
-            <div class="card-body">
-                <input type="file" id="arquivoExcel" class="form-control mb-3" accept=".xlsx, .xls">
-                <button class="btn btn-dark w-100" onclick="processarExcel()">Ler Planilha</button>
-            </div>
+    
+    <div class="tab-pane fade" id="tab-novo-cli">
+        <div class="card p-4 shadow-sm border-0">
+            <h5 class="fw-bold mb-3">Novo Cliente</h5>
+            <input type="text" id="novoNome" class="form-control mb-2" placeholder="Nome Completo">
+            <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone (DDD + Número)">
+            <label class="small fw-bold">Paga todo dia:</label>
+            <select id="novoDiaPag" class="form-select mb-3"></select>
+            <button class="btn btn-primary w-100 p-2 fw-bold" onclick="salvarNovoCliente()">💾 SALVAR NOVO CLIENTE</button>
+            <button class="btn btn-link w-100 text-muted mt-2" data-bs-toggle="tab" data-bs-target="#tab-inicio">Cancelar</button>
         </div>
     </div>
+
 </div>
 
-<div class="modal fade" id="modalVenda" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold" id="tituloVenda">Venda</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="idClienteVenda">
-                
-                <div id="boxBloqueio" class="alert alert-danger d-none text-center p-2">
-                    <strong>⛔ DEVEDOR ATRASADO!</strong><br>
-                    <button class="btn btn-sm btn-outline-danger mt-2" onclick="desbloquearComSenha()">Liberar c/ Senha 0309</button>
-                </div>
-
-                <div id="areaVendaInputs">
-                    <div class="input-group mb-2">
-                        <select id="selectProdVenda" class="form-select"></select>
-                        <input type="number" id="qtdProdVenda" class="form-control" value="1" style="max-width: 60px;">
-                        <button class="btn btn-primary" onclick="addCarrinho()">➕</button>
-                    </div>
-                    
-                    <label class="small text-muted fw-bold">Carrinho:</label>
-                    <ul class="list-group mb-2 bg-light" id="listaCarrinho" style="max-height: 150px; overflow-y: auto;">
-                        <li class="list-group-item text-center small text-muted">Carrinho vazio</li>
-                    </ul>
-                    <h4 class="text-end fw-bold text-primary" id="totalCarrinho">R$ 0,00</h4>
-                    
-                    <div class="d-flex gap-2 mb-3 mt-3">
-                        <input type="radio" class="btn-check" name="tipoVenda" id="optFiado" value="FIADO" checked>
-                        <label class="btn btn-outline-danger w-50" for="optFiado">🔴 FIADO</label>
-                        <input type="radio" class="btn-check" name="tipoVenda" id="optVista" value="VISTA">
-                        <label class="btn btn-outline-success w-50" for="optVista">🟢 À VISTA</label>
-                    </div>
-                    
-                    <label class="small text-muted">Data da Venda:</label>
-                    <input type="date" id="dataVenda" class="form-control mb-2">
-                    <button class="btn btn-dark w-100 py-2" onclick="finalizarVenda()">✅ CONCLUIR</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalPagamento" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">💰 Receber</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                <input type="hidden" id="idClientePgto">
-                <p class="mb-1">Valor recebido:</p>
-                <input type="number" id="valorPgto" class="form-control fs-1 text-center text-success fw-bold mb-3" placeholder="0,00">
-                <input type="date" id="dataPgto" class="form-control">
-                <button class="btn btn-success w-100 mt-3 fw-bold" onclick="confirmarPagamento()">CONFIRMAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalExtrato" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title">📜 Histórico</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <table class="table table-striped mb-0 table-sm align-middle" style="font-size: 0.9rem;">
-                    <thead class="table-dark">
-                        <tr>
-                            <th style="width: 20%">Data</th>
-                            <th style="width: 50%">Descrição</th>
-                            <th style="width: 20%" class="text-end">Valor</th>
-                            <th style="width: 10%">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaExtrato"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalEditarCliente" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title">✏️ Editar Cliente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editId">
-                <label>Nome:</label>
-                <input type="text" id="editNome" class="form-control mb-2">
-                <label>Setor:</label>
-                <select id="editSetor" class="form-select mb-2">
-                    <option value="IGREJA">Igreja</option>
-                    <option value="ROLETE">Rolete</option>
-                    <option value="TABATA">Tabata</option>
-                    <option value="ANDERSON">Anderson</option>
-                    <option value="BIANCA">Bianca</option>
-                    <option value="RUA">Rua/Outros</option>
-                </select>
-                <label>Telefone:</label>
-                <input type="text" id="editTel" class="form-control mb-2">
-                <label>Dia de Pagamento (Todo mês):</label>
-                <select id="editDiaPag" class="form-select mb-3">
-                    <option value="">Sem dia fixo</option>
-                    </select>
-                
-                <button class="btn btn-dark w-100" onclick="salvarEdicaoCliente()">Salvar Alterações</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalEditarProd" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h6 class="modal-title">Editar Produto</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editProdId">
-                <label>Nome:</label>
-                <input type="text" id="editProdNome" class="form-control mb-2">
-                <label>Preço:</label>
-                <input type="number" id="editProdPreco" class="form-control mb-3">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary flex-grow-1" onclick="salvarEdicaoProd()">Salvar</button>
-                    <button class="btn btn-danger" onclick="excluirProd()">🗑️</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1080;">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content border-danger">
-            <div class="modal-body text-center">
-                <strong class="text-danger">🔒 SENHA CHEFE:</strong>
-                <input type="password" id="inputSenha" class="form-control text-center fs-4 my-2" placeholder="****">
-                <button class="btn btn-danger w-100" onclick="validarSenha()">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="modal fade" id="modalVenda" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-header bg-light border-0"><h5 class="modal-title fw-bold" id="tituloVenda">Venda</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="idClienteVenda"><div id="boxBloqueio" class="alert alert-danger d-none text-center"><strong>⛔ DEVEDOR ATRASADO!</strong><br><button class="btn btn-sm btn-outline-danger mt-2" onclick="desbloquearComSenha()">Liberar c/ Senha 0309</button></div><div id="areaVendaInputs"><div class="input-group mb-3"><select id="selectProdVenda" class="form-select"></select><input type="number" id="qtdProdVenda" class="form-control" value="1" style="max-width: 65px;"><button class="btn btn-primary" onclick="addCarrinho()">➕</button></div><ul class="list-group mb-3" id="listaCarrinho" style="max-height: 180px; overflow-y: auto;"></ul><h3 class="text-end fw-bold text-primary" id="totalCarrinho">R$ 0,00</h3><div class="d-flex gap-2 mb-3 mt-3"><input type="radio" class="btn-check" name="tipoVenda" id="optFiado" value="FIADO" checked><label class="btn btn-outline-danger w-50 fw-bold" for="optFiado">🔴 FIADO</label><input type="radio" class="btn-check" name="tipoVenda" id="optVista" value="VISTA"><label class="btn btn-outline-success w-50 fw-bold" for="optVista">🟢 À VISTA</label></div><input type="date" id="dataVenda" class="form-control mb-3"><button class="btn btn-dark w-100 py-3 fw-bold rounded-pill" onclick="finalizarVenda()">✅ CONCLUIR VENDA</button></div></div></div></div></div>
+<div class="modal fade" id="modalPagamento" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow"><div class="modal-header bg-success text-white border-0"><h5 class="modal-title">💰 Receber</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="idClientePgto"><input type="number" id="valorPgto" class="form-control fs-1 text-center text-success fw-bold mb-3 border-0" placeholder="0,00"><input type="date" id="dataPgto" class="form-control border-0 bg-light mb-3"><button class="btn btn-success w-100 fw-bold py-2 rounded-pill" onclick="confirmarPagamento()">CONFIRMAR PAGAMENTO</button></div></div></div></div>
+<div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1080;"><div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content border-0 shadow"><div class="modal-body text-center"><h6 class="fw-bold">🔒 SENHA RESTRITA</h6><input type="password" id="inputSenha" class="form-control text-center fs-4 my-2" placeholder="****"><button class="btn btn-danger w-100" onclick="validarSenha()">OK</button></div></div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
@@ -314,147 +147,192 @@
   let CARRINHO = [];
   let TOTAL_CARRINHO = 0;
   let SENHA_CALLBACK = null;
+  let TEMPLATES = {};
 
-  window.onload = () => {
+  window.onload = async () => {
       preencherDias();
+      await carregarTemplates();
       carregarClientes();
       carregarProdutos();
       document.getElementById('dataVenda').valueAsDate = new Date();
   };
 
   function preencherDias() {
-      const sels = [document.getElementById('novoDiaPag'), document.getElementById('editDiaPag')];
-      sels.forEach(s => {
-          for(let i=1; i<=31; i++) {
-              s.innerHTML += `<option value="${i}">Dia ${i}</option>`;
-          }
-      });
+      const s = document.getElementById('novoDiaPag');
+      for(let i=1; i<=31; i++) s.innerHTML += `<option value="${i}">Dia ${i}</option>`;
   }
 
-  // --- FUNÇÃO CORRIGIDA PARA MÊS CURTO (V18) ---
-  function calcularVencimento(diaPagamento, dataUltimaCompraISO) {
-      if (!diaPagamento) return null;
+  // --- CONFIGURAÇÃO DE MENSAGENS ---
+  async function carregarTemplates() {
+      const snap = await getDoc(doc(db, "config", "templates"));
+      if (snap.exists()) {
+          TEMPLATES = snap.data();
+      } else {
+          TEMPLATES = {
+              pix: "16988143766",
+              hoje: "Oii , tudo bem? Estou passando somente para passar o valor em aberto de doces. Seu valor é {valor} reais. Obrigada. Segue o pix para pagamento {pix}",
+              atrasado: "Oii boa tarde, tudo bem? Estou passando somente para passar o valor em aberto de doces. Seu valor é {valor} reais. Obrigada. Segue o pix para pagamento {pix}",
+              avencer: "oi seu dia de vencimento {vencimento} e valor {valor}. Segue o pix para pagamento {pix}"
+          };
+      }
+      document.getElementById('cfgPix').value = TEMPLATES.pix;
+      document.getElementById('msgHoje').value = TEMPLATES.hoje;
+      document.getElementById('msgAtrasado').value = TEMPLATES.atrasado;
+      document.getElementById('msgAvencer').value = TEMPLATES.avencer;
+  }
+
+  window.salvarTemplates = async () => {
+      TEMPLATES = {
+          pix: document.getElementById('cfgPix').value,
+          hoje: document.getElementById('msgHoje').value,
+          atrasado: document.getElementById('msgAtrasado').value,
+          avencer: document.getElementById('msgAvencer').value
+      };
+      await setDoc(doc(db, "config", "templates"), TEMPLATES);
+  };
+
+  // --- LÓGICA DE COBRANÇA ---
+  function calcularVencimento(diaPag, ultimaVenda) {
+      if (!diaPag) return null;
+      let d = ultimaVenda ? new Date(ultimaVenda + 'T00:00:00') : new Date();
+      if (d.getDate() > diaPag) d.setMonth(d.getMonth() + 1);
+      const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      return new Date(d.getFullYear(), d.getMonth(), Math.min(diaPag, ultimo));
+  }
+
+  window.abrirSubAba = async (tipo) => {
+      document.querySelectorAll('.btn-sub-cobranca').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-sub-${tipo}`).classList.add('active');
+      const area = document.getElementById('conteudoCobranca');
+      area.innerHTML = '<div class="text-center mt-4"><div class="spinner-border text-pink"></div></div>';
       
-      let dataRef = dataUltimaCompraISO ? new Date(dataUltimaCompraISO + 'T00:00:00') : new Date();
-      dataRef.setHours(0,0,0,0);
+      const snapCli = await getDocs(query(collection(db, "clientes")));
+      let clientes = []; snapCli.forEach(d => clientes.push({id: d.id, ...d.data()}));
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      let html = "";
 
-      let anoVenc = dataRef.getFullYear();
-      let mesVenc = dataRef.getMonth(); 
+      if (tipo === 'recebimentos') {
+          const snapTrans = await getDocs(query(collection(db, "transacoes"), where("tipo", "==", "PAGAMENTO")));
+          let pagamentos = []; snapTrans.forEach(d => pagamentos.push(d.data()));
+          pagamentos.sort((a,b) => b.timestamp - a.timestamp);
+          html += `<div class="list-group">`;
+          pagamentos.forEach(p => {
+              const cli = clientes.find(c => c.id === p.cliente_id)?.nome || "Excluído";
+              html += `<div class="list-group-item d-flex justify-content-between align-items-center border-0 shadow-sm mb-2 rounded">
+                          <div><strong class="text-dark">${cli}</strong><br><small class="text-muted">${p.data.split('-').reverse().join('/')}</small></div>
+                          <span class="text-success fw-bold">R$ ${p.valor.toFixed(2)}</span>
+                       </div>`;
+          });
+          html += `</div>`;
+      } else {
+          let totalSoma = 0;
+          let listagem = "";
+          for (let c of clientes) {
+              if (c.saldo < -0.01 && c.dia_pagamento) {
+                  const venc = calcularVencimento(parseInt(c.dia_pagamento), c.ultima_venda);
+                  venc.setHours(0,0,0,0);
+                  let estado = (venc.getTime() === hoje.getTime()) ? 'hoje' : (venc.getTime() < hoje.getTime() ? 'atrasados' : 'avencer');
+                  
+                  if (tipo === estado) {
+                      totalSoma += Math.abs(c.saldo);
+                      // Busca o que ele comprou (últimas transações)
+                      const qT = query(collection(db, "transacoes"), where("cliente_id", "==", c.id), where("tipo", "==", "VENDA"));
+                      const sT = await getDocs(qT);
+                      let produtos = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') produtos.push(t.data().descricao); });
 
-      // Se comprou depois do dia do pagamento, joga pro mês seguinte
-      if (dataRef.getDate() > diaPagamento) {
-          mesVenc++; 
-          if (mesVenc > 11) { 
-              mesVenc = 0;
-              anoVenc++;
+                      listagem += `
+                        <div class="card card-cobranca p-3 border-0 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div style="max-width: 70%">
+                                    <h6 class="fw-bold mb-0">${c.nome}</h6>
+                                    <small class="text-danger fw-bold d-block">Deve: R$ ${Math.abs(c.saldo).toFixed(2)}</small>
+                                    <small class="text-muted" style="font-size:0.7rem">Vence: ${venc.toLocaleDateString('pt-BR')}</small><br>
+                                    <small class="text-secondary" style="font-size:0.65rem">Itens: ${produtos.join(', ') || 'Não listado'}</small>
+                                </div>
+                                <button class="btn btn-success btn-sm rounded-circle" onclick="prepararZap('${c.id}', '${tipo}', '${venc.toLocaleDateString('pt-BR')}')">
+                                    <i class="bi bi-whatsapp"></i>
+                                </button>
+                            </div>
+                        </div>`;
+                  }
+              }
+          }
+          if (tipo === 'avencer') html += `<div class="total-box shadow"><h6>Total a Receber Futuro</h6><h3>R$ ${totalSoma.toFixed(2)}</h3></div>`;
+          html += listagem;
+      }
+      area.innerHTML = html || "<div class='text-center text-muted mt-5'>Nenhum registro encontrado.</div>";
+  };
+
+  window.prepararZap = async (idCli, tipo, dataVenc) => {
+      const snap = await getDoc(doc(db, "clientes", idCli));
+      const c = snap.data();
+      
+      // Busca produtos pendentes
+      const qT = query(collection(db, "transacoes"), where("cliente_id", "==", idCli), where("tipo", "==", "VENDA"));
+      const sT = await getDocs(qT);
+      let prodsArr = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') prodsArr.push(t.data().descricao); });
+      
+      let msgBase = TEMPLATES[tipo === 'atrasados' ? 'atrasado' : (tipo === 'hoje' ? 'hoje' : 'avencer')];
+      let msgFinal = msgBase
+          .replace(/{nome}/g, c.nome)
+          .replace(/{valor}/g, Math.abs(c.saldo).toFixed(2))
+          .replace(/{vencimento}/g, dataVenc)
+          .replace(/{produtos}/g, prodsArr.join(', '))
+          .replace(/{pix}/g, TEMPLATES.pix);
+
+      const tel = c.telefone.replace(/\D/g, '');
+      window.open(`https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(msgFinal)}`, '_blank');
+  };
+
+  // --- EXPORTAR EXCEL ---
+  window.exportarExcelRelatorio = async () => {
+      const snapCli = await getDocs(collection(db, "clientes"));
+      let dadosExcel = [];
+      
+      for (let d of snapCli.docs) {
+          const c = d.data();
+          if (c.saldo < -0.01) {
+              const qT = query(collection(db, "transacoes"), where("cliente_id", "==", d.id), where("tipo", "==", "VENDA"));
+              const sT = await getDocs(qT);
+              let listaProds = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') listaProds.push(t.data().descricao); });
+              
+              dadosExcel.push({
+                  "CLIENTE": c.nome,
+                  "TELEFONE": c.telefone,
+                  "VALOR EM ABERTO": Math.abs(c.saldo).toFixed(2),
+                  "PRODUTOS COMPRADOS": listaProds.join(' | ')
+              });
           }
       }
-
-      // CORREÇÃO: Verifica qual o último dia daquele mês
-      // new Date(ano, mes+1, 0) retorna o último dia do mês "mes"
-      const ultimoDiaDoMes = new Date(anoVenc, mesVenc + 1, 0).getDate();
       
-      // O dia final é o MENOR entre o dia de pagamento e o fim do mês
-      // Ex: Dia 30 em Fev (28) -> vence 28.
-      const diaFinal = Math.min(diaPagamento, ultimoDiaDoMes);
+      const ws = XLSX.utils.json_to_sheet(dadosExcel);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Cobrança");
+      XLSX.writeFile(wb, `GabyDoces_Cobranca_${new Date().toLocaleDateString().replace(/\//g,'-')}.xlsx`);
+  };
 
-      return new Date(anoVenc, mesVenc, diaFinal);
-  }
-
-  function obterEstadoVencimento(vencimento) {
-      if (!vencimento) return 'SEM_DATA';
-      const hoje = new Date();
-      hoje.setHours(0,0,0,0);
-      const venc = new Date(vencimento);
-      venc.setHours(0,0,0,0);
-      if (venc.getTime() === hoje.getTime()) return 'HOJE';
-      if (venc.getTime() < hoje.getTime()) return 'ATRASADO';
-      return 'PRAZO';
-  }
-
-  // 1. CLIENTES
+  // --- FUNÇÕES BÁSICAS MANTIDAS ---
   window.carregarClientes = async () => {
       const lista = document.getElementById('listaClientes');
       const busca = document.getElementById('buscaNome').value.toLowerCase();
-      const setor = document.getElementById('filtroSetor').value;
-      
-      lista.innerHTML = '<div class="text-center mt-5"><div class="spinner-border text-primary"></div></div>';
-      
-      const q = query(collection(db, "clientes"));
-      const snap = await getDocs(q);
-      
-      let clientes = [];
-      snap.forEach(d => clientes.push({id: d.id, ...d.data()}));
-      clientes.sort((a,b) => a.nome.localeCompare(b.nome));
-
+      const snap = await getDocs(collection(db, "clientes"));
+      let clis = []; snap.forEach(d => clis.push({id: d.id, ...d.data()}));
+      clis.sort((a,b) => a.nome.localeCompare(b.nome));
       lista.innerHTML = '';
-      
-      clientes.forEach(c => {
+      clis.forEach(c => {
           if (busca && !c.nome.toLowerCase().includes(busca)) return;
-          if (setor && c.setor !== setor) return;
-
-          const saldo = parseFloat(c.saldo) || 0;
-          const devedor = saldo < -0.01;
-          const diaPag = parseInt(c.dia_pagamento) || 0;
-          
-          let cardColor = 'status-ok';
-          let textColor = 'texto-ok';
-          let badge = '';
-          let tipoZap = 'GERAL';
-          let textoZapData = '';
-
-          if (devedor) {
-              cardColor = 'status-devendo';
-              textColor = 'texto-devendo';
-              
-              if (diaPag > 0) {
-                  const dataVenc = calcularVencimento(diaPag, c.ultima_venda);
-                  const estado = obterEstadoVencimento(dataVenc);
-                  const dataFormatada = dataVenc.toLocaleDateString('pt-BR');
-                  textoZapData = dataFormatada;
-
-                  if (estado === 'ATRASADO') {
-                      badge = `<span class="badge bg-danger w-100 mb-2">🔴 VENCIDO (${dataFormatada})</span>`;
-                      tipoZap = 'ATRASADO';
-                  } else if (estado === 'HOJE') {
-                      badge = `<span class="badge bg-warning text-dark w-100 mb-2">🟡 VENCE HOJE!</span>`;
-                      tipoZap = 'HOJE';
-                  } else {
-                      badge = `<span class="badge bg-info text-dark w-100 mb-2">🔵 Vence: ${dataFormatada}</span>`;
-                      tipoZap = 'PRAZO';
-                  }
-              } else {
-                  badge = `<span class="badge bg-secondary w-100 mb-2">⚪ Sem dia fixo</span>`;
-              }
-          }
-
-          const txtSaldo = devedor ? `DEVE R$ ${Math.abs(saldo).toFixed(2)}` : `CRÉDITO R$ ${saldo.toFixed(2)}`;
-          
-          let btnZap = '';
-          if (devedor) {
-              btnZap = `<button class="btn btn-success btn-sm w-100 mt-1" onclick="enviarZap('${c.nome}', '${c.telefone}', ${Math.abs(saldo)}, '${tipoZap}', '${textoZapData}')"><i class="bi bi-whatsapp"></i> Cobrar</button>`;
-          }
-
+          const devedor = c.saldo < -0.01;
           lista.innerHTML += `
             <div class="col-md-6 mb-2">
-                <div class="card shadow-sm card-cliente ${cardColor}">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="fw-bold text-truncate m-0" style="max-width: 65%">${c.nome}</h6>
-                            <button class="btn btn-sm text-secondary border-0" onclick="abrirEditarCliente('${c.id}')">✏️</button>
+                <div class="card card-cliente p-2 ${devedor?'status-devendo':'status-ok'} shadow-sm border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-truncate" style="max-width: 60%">
+                            <strong class="text-dark">${c.nome}</strong><br>
+                            <span class="${devedor?'text-danger fw-bold':'text-success'}">R$ ${Math.abs(c.saldo).toFixed(2)}</span>
                         </div>
-                        <span class="badge bg-secondary mb-1" style="font-size: 0.7rem">${c.setor}</span>
-                        ${badge}
-                        <div class="${textColor} fs-5 mb-1 text-center">
-                            ${txtSaldo}
-                        </div>
-                        <div class="d-flex gap-1 mt-2">
-                            <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${c.id}', '${c.nome}', ${saldo})">Vender</button>
-                            <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${c.id}')">Receber</button>
-                        </div>
-                        ${btnZap}
-                        <div class="text-end mt-1">
-                            <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${c.id}')">📄 Detalhes</button>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-outline-danger btn-sm" onclick="abrirVenda('${c.id}', '${c.nome}', ${c.saldo})">Vender</button>
+                            <button class="btn btn-success btn-sm" onclick="abrirPagamento('${c.id}')"><i class="bi bi-cash"></i></button>
                         </div>
                     </div>
                 </div>
@@ -462,107 +340,49 @@
       });
   };
 
-  // 2. WHATSAPP
-  window.enviarZap = (nome, telefone, valor, tipo, dataTxt) => {
-      if(!telefone || telefone.length < 8) return alert("Cliente sem telefone cadastrado!");
-      const num = telefone.replace(/\D/g, '');
-      const telFinal = num.length <= 11 ? "55" + num : num;
+  window.salvarNovoCliente = async () => {
+      const nome = document.getElementById('novoNome').value.toUpperCase();
+      const tel = document.getElementById('novoTel').value;
+      const dia = document.getElementById('novoDiaPag').value;
+      if(!nome) return;
+      await addDoc(collection(db, "clientes"), { nome, telefone: tel, dia_pagamento: dia, saldo: 0 });
+      alert("Cliente salvo!");
+      document.querySelector('[data-bs-target="#tab-inicio"]').click();
+      carregarClientes();
+  };
 
-      let msg = "";
-      if (tipo === 'HOJE') {
-          msg = `Oii boa tarde, tudo bem? Estou passando somente para passar o valor em aberto de doces. Seu valor é R$ ${valor.toFixed(2)} Obrigada Segue o pix para pagamento 16988143766.`;
-      } else if (tipo === 'ATRASADO') {
-          msg = `Olá ${nome}, constou uma pendência aqui de R$ ${valor.toFixed(2)}. Podemos agendar o pagamento? vou deixa meu  PIX 16988143766.`;
-      } else {
-          msg = `Olá ${nome}, tudo bem? Sobre seu saldo na Gaby Doces de R$ ${valor.toFixed(2)}... Este é meu PIX 16988143766.`;
+  window.addProduto = async () => {
+      const nome = document.getElementById('prodNome').value.toUpperCase();
+      const preco = parseFloat(document.getElementById('prodPreco').value);
+      if(nome && preco) {
+          await addDoc(collection(db, "produtos"), { nome, preco });
+          carregarProdutos();
+          document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = '';
       }
-
-      const url = `https://wa.me/${telFinal}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
   };
 
-  // 3. DASHBOARD
-  window.filtrarRelatorio = async (tipo) => {
-      const a = document.getElementById('areaRelatorio'); a.innerHTML='Carregando...';
-      const q = query(collection(db, "clientes")); const snap = await getDocs(q);
-      
-      let html = '<ul class="list-group">';
-      snap.forEach(d => { 
-          const c = d.data(); 
-          if(c.saldo < -0.01 && c.dia_pagamento) { 
-              const diaPag = parseInt(c.dia_pagamento);
-              const dataVenc = calcularVencimento(diaPag, c.ultima_venda);
-              const estado = obterEstadoVencimento(dataVenc);
-              
-              if(tipo === estado) {
-                  const btn = `<button class="btn btn-success btn-sm" onclick="enviarZap('${c.nome}','${c.telefone}',${Math.abs(c.saldo)},'${tipo}')"><i class="bi bi-whatsapp"></i></button>`;
-                  html+=`<li class="list-group-item d-flex justify-content-between align-items-center">
-                      <div><strong>${c.nome}</strong><br><small>Vence: ${dataVenc.toLocaleDateString('pt-BR')}</small></div>
-                      <div class="d-flex align-items-center gap-2">
-                        <span class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</span>
-                        ${btn}
-                      </div>
-                  </li>`; 
-              }
-          } 
-      }); 
-      html+='</ul>'; a.innerHTML=html; 
-  };
-  
-  window.carregarDashboard = async () => { 
-      const q=query(collection(db,"clientes")); const snap=await getDocs(q); 
-      let h=0, a=0, p=0; 
-      snap.forEach(d=>{ 
-          const c=d.data(); 
-          if(c.saldo<-0.01 && c.dia_pagamento) { 
-              const diaPag = parseInt(c.dia_pagamento);
-              const dataVenc = calcularVencimento(diaPag, c.ultima_venda);
-              const estado = obterEstadoVencimento(dataVenc);
-              if(estado==='HOJE') h++; if(estado==='ATRASADO') a++; if(estado==='PRAZO') p++;
-          } 
-      }); 
-      document.getElementById('cntHoje').innerText=h; 
-      document.getElementById('cntAtrasados').innerText=a; 
-      document.getElementById('cntPrazo').innerText=p; 
+  window.carregarProdutos = async () => {
+      const s = document.getElementById('selectProdVenda');
+      const l = document.getElementById('listaProdutos');
+      const sn = await getDocs(collection(db, "produtos"));
+      s.innerHTML = ''; l.innerHTML = '';
+      sn.forEach(d => {
+          const p = d.data();
+          s.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`;
+          l.innerHTML += `<li class="list-group-item d-flex justify-content-between border-0 shadow-sm mb-1 rounded">${p.nome} <strong>R$ ${p.preco.toFixed(2)}</strong></li>`;
+      });
   };
 
-  // 4. MÉTODOS PADRÃO
-  window.salvarNovoCliente = async () => { 
-      const nome=document.getElementById('novoNome').value.toUpperCase(); 
-      const setor=document.getElementById('novoSetor').value; 
-      const tel=document.getElementById('novoTel').value; 
-      const diaPag=document.getElementById('novoDiaPag').value; 
-      if(!nome) return alert("Nome!"); 
-      const check=await getDocs(query(collection(db,"clientes"),where("nome","==",nome))); 
-      if(!check.empty) return alert("Existe!"); 
-      const ref=await addDoc(collection(db,"clientes"),{nome, setor, telefone:tel, saldo:0, dia_pagamento: diaPag, ultima_venda: new Date().toISOString().split('T')[0]}); 
-      await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'INFO', metodo:'SIS', valor:0, descricao:'Inicio', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); 
-      alert("Salvo!"); document.querySelector('[data-bs-target="#tab-inicio"]').click(); carregarClientes(); 
-  };
-
-  window.abrirEditarCliente = async (id) => { pedirSenha(async () => { const docRef = doc(db, "clientes", id); const snap = await getDoc(docRef); const c = snap.data(); document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome; document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone; document.getElementById('editDiaPag').value = c.dia_pagamento || ''; new bootstrap.Modal(document.getElementById('modalEditarCliente')).show(); }); };
-  window.salvarEdicaoCliente = async () => { const id = document.getElementById('editId').value; await updateDoc(doc(db, "clientes", id), { nome: document.getElementById('editNome').value.toUpperCase(), setor: document.getElementById('editSetor').value, telefone: document.getElementById('editTel').value, dia_pagamento: document.getElementById('editDiaPag').value }); bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); carregarClientes(); alert("Cliente atualizado!"); };
-
-  window.carregarProdutos = async () => { const s = document.getElementById('selectProdVenda'); const l = document.getElementById('listaProdutos'); const q = query(collection(db, "produtos")); const snap = await getDocs(q); s.innerHTML = ''; l.innerHTML = ''; snap.forEach(d => { const p = d.data(); s.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; l.innerHTML += `<li class="list-group-item d-flex justify-content-between action-hover" style="cursor:pointer" onclick="abrirEditarProd('${d.id}', '${p.nome}', ${p.preco})">${p.nome} <span>R$ ${p.preco} ✏️</span></li>`; }); };
-  window.abrirEditarProd = (id, nome, preco) => { document.getElementById('editProdId').value = id; document.getElementById('editProdNome').value = nome; document.getElementById('editProdPreco').value = preco; new bootstrap.Modal(document.getElementById('modalEditarProd')).show(); };
-  window.salvarEdicaoProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; const nome = document.getElementById('editProdNome').value.toUpperCase(); const preco = parseFloat(document.getElementById('editProdPreco').value); await updateDoc(doc(db, "produtos", id), { nome, preco }); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
-  window.excluirProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; await deleteDoc(doc(db, "produtos", id)); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
-  window.addProduto = async () => { const n = document.getElementById('prodNome').value.toUpperCase(); const p = parseFloat(document.getElementById('prodPreco').value); if(n && p) { await addDoc(collection(db, "produtos"), {nome: n, preco: p}); carregarProdutos(); document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; } };
-  window.addCarrinho = () => { const select = document.getElementById('selectProdVenda'); const qtd = parseFloat(document.getElementById('qtdProdVenda').value); const preco = parseFloat(select.value); const nome = select.options[select.selectedIndex].getAttribute('data-nome'); if(!nome) return; CARRINHO.push({ nome, qtd, total: preco * qtd }); TOTAL_CARRINHO += preco * qtd; atualizarCarrinho(); };
-  window.removerItemCarrinho = (index) => { TOTAL_CARRINHO -= CARRINHO[index].total; CARRINHO.splice(index, 1); atualizarCarrinho(); };
-  function atualizarCarrinho() { const lista = document.getElementById('listaCarrinho'); lista.innerHTML = ''; if (CARRINHO.length === 0) { lista.innerHTML = '<li class="list-group-item text-center small text-muted">Carrinho vazio</li>'; } else { CARRINHO.forEach((i, idx) => { lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center p-1 small"><div>${i.qtd}x ${i.nome}</div><div><span class="me-2">R$ ${i.total.toFixed(2)}</span><button class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemCarrinho(${idx})">X</button></div></li>`; }); } document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
-  window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; TOTAL_CARRINHO=0; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=`Venda: ${nome}`; const bloq=saldo<-1; document.getElementById('boxBloqueio').classList.toggle('d-none',!bloq); document.getElementById('areaVendaInputs').classList.toggle('d-none',bloq); new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
-  window.finalizarVenda = async () => { if(!CARRINHO.length) return alert("Carrinho vazio!"); const id = document.getElementById('idClienteVenda').value; const tipo = document.querySelector('input[name="tipoVenda"]:checked').value; let data = document.getElementById('dataVenda').value; if(!data) data = new Date().toISOString().split('T')[0]; const ref = doc(db, "clientes", id); const snap = await getDoc(ref); let saldo = snap.data().saldo || 0; if(tipo === 'FIADO') { saldo -= TOTAL_CARRINHO; await updateDoc(ref, { saldo, ultima_venda: data }); } else { await updateDoc(ref, { ultima_venda: data }); } const desc = CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', '); await addDoc(collection(db, "transacoes"), { cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:desc, data, timestamp:new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!"); };
-  window.verExtrato = async (id) => { const modal = new bootstrap.Modal(document.getElementById('modalExtrato')); modal.show(); const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>'; try { const q = query(collection(db, "transacoes"), where("cliente_id", "==", id)); const snap = await getDocs(q); let dados = []; snap.forEach(d => dados.push({id: d.id, ...d.data()})); dados.sort((a, b) => new Date(b.timestamp.seconds * 1000) - new Date(a.timestamp.seconds * 1000)); tb.innerHTML = ''; if(dados.length === 0) tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Vazio.</td></tr>'; dados.forEach(t => { const dataEx = t.data ? formatarData(t.data) : "??"; const descEx = t.descricao || "-"; const valorEx = t.valor !== undefined ? parseFloat(t.valor).toFixed(2) : "0.00"; const isPgto = t.tipo === 'PAGAMENTO'; const cor = isPgto ? 'text-success' : 'text-danger'; const sinal = isPgto ? '+' : '-'; const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">VISTA</span>' : ''; tb.innerHTML += `<tr><td>${dataEx}</td><td><div class="fw-bold small">${t.tipo}${extra}</div><div class="text-muted small" style="font-size:0.75rem">${descEx}</div></td><td class="${cor} fw-bold text-end">${sinal}${valorEx}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="excluirTransacao('${t.id}', '${id}', ${t.valor}, '${t.tipo}', '${t.metodo}')">🗑️</button></td></tr>`; }); } catch (e) { console.error(e); tb.innerHTML = `<tr><td colspan="4" class="text-danger small">Erro</td></tr>`; } };
-  window.excluirTransacao = (idTransacao, idCliente, valor, tipo, metodo) => { pedirSenha(async () => { const refCli = doc(db, "clientes", idCliente); const snap = await getDoc(refCli); let saldoAtual = snap.data().saldo || 0; if (tipo === 'VENDA' && metodo === 'FIADO') { saldoAtual += valor; } else if (tipo === 'PAGAMENTO') { saldoAtual -= valor; } await updateDoc(refCli, { saldo: saldoAtual }); await deleteDoc(doc(db, "transacoes", idTransacao)); bootstrap.Modal.getInstance(document.getElementById('modalExtrato')).hide(); carregarClientes(); alert("Item excluído!"); }); };
-  function formatarData(iso) { if(!iso) return ""; return iso.split('-').reverse().join('/'); }
-  window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('valorPgto').value=''; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
-  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; if(!v) return alert("Valor?"); const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', metodo:'DINHEIRO', valor:v, descricao:'Pagamento', data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
-  window.pedirSenha = (cb) => { SENHA_CALLBACK=cb; document.getElementById('inputSenha').value=''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
-  window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha!"); };
-  window.desbloquearComSenha = () => { pedirSenha(()=>{ document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
-  window.processarExcel = () => { const f=document.getElementById('arquivoExcel'); if(!f.files[0]) return alert("Arquivo?"); const r=new FileReader(); r.onload=async(e)=>{ const d=new Uint8Array(e.target.result); const w=XLSX.read(d,{type:'array'}); const s=w.Sheets[w.SheetNames[0]]; const dd=XLSX.utils.sheet_to_json(s); let n=0; for(let lin of dd) { const nm=lin['NOME']; if(!nm) continue; const chk=await getDocs(query(collection(db,"clientes"),where("nome","==",nm.toUpperCase()))); if(chk.empty) { let tot=lin['TOTAL']; if(typeof tot==='string') tot=parseFloat(tot.replace('R$','').replace(',','.')); if(!tot) tot=0; const sal=tot>0?-Math.abs(tot):0; const ref=await addDoc(collection(db,"clientes"),{nome:nm.toUpperCase(), setor:(lin['SETOR']||'GERAL').toUpperCase(), telefone:lin['TELEFONE']||'', saldo:sal, vencimento:null}); if(sal<0) await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'VENDA', metodo:'FIADO', valor:Math.abs(sal), descricao:'Importado', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); n++; } } alert(`Importados: ${n}`); carregarClientes(); }; r.readAsArrayBuffer(f.files[0]); };
-
+  // Venda, Pagamento, Carrinho (Lógica interna padrão)
+  window.abrirVenda = (id, nome, saldo) => { CARRINHO = []; atualizarCarrinho(); document.getElementById('idClienteVenda').value = id; document.getElementById('tituloVenda').innerText = nome; new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
+  window.addCarrinho = () => { const s = document.getElementById('selectProdVenda'); const q = parseFloat(document.getElementById('qtdProdVenda').value); const n = s.options[s.selectedIndex].getAttribute('data-nome'); CARRINHO.push({nome:n, qtd:q, total: parseFloat(s.value)*q}); TOTAL_CARRINHO += parseFloat(s.value)*q; atualizarCarrinho(); };
+  function atualizarCarrinho() { const l = document.getElementById('listaCarrinho'); l.innerHTML = ''; CARRINHO.forEach((i, idx) => { l.innerHTML += `<li class="list-group-item d-flex justify-content-between p-2 small border-0 bg-light mb-1 rounded"><span>${i.qtd}x ${i.nome}</span><strong>R$ ${i.total.toFixed(2)}</strong></li>`; }); document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
+  window.finalizarVenda = async () => { const id = document.getElementById('idClienteVenda').value; const tipo = document.querySelector('input[name="tipoVenda"]:checked').value; const data = document.getElementById('dataVenda').value; const ref = doc(db, "clientes", id); const sCli = await getDoc(ref); let saldo = sCli.data().saldo || 0; if(tipo === 'FIADO') saldo -= TOTAL_CARRINHO; await updateDoc(ref, { saldo, ultima_venda: data }); await addDoc(collection(db, "transacoes"), { cliente_id: id, tipo: 'VENDA', metodo: tipo, valor: TOTAL_CARRINHO, descricao: CARRINHO.map(i=>`${i.qtd}x ${i.nome}`).join(', '), data, timestamp: new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda realizada!"); };
+  window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value = id; document.getElementById('dataPgto').valueAsDate = new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
+  window.confirmarPagamento = async () => { const id = document.getElementById('idClientePgto').value; const v = parseFloat(document.getElementById('valorPgto').value); const d = document.getElementById('dataPgto').value; const ref = doc(db, "clientes", id); const s = await getDoc(ref); await updateDoc(ref, { saldo: (s.data().saldo||0) + v }); await addDoc(collection(db, "transacoes"), { cliente_id: id, tipo: 'PAGAMENTO', valor: v, data: d, timestamp: new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Pagamento recebido!"); };
+  window.pedirSenha = (cb) => { SENHA_CALLBACK = cb; document.getElementById('inputSenha').value = ''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
+  window.validarSenha = () => { if(document.getElementById('inputSenha').value === '0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha incorreta!"); };
+  window.desbloquearComSenha = () => { pedirSenha(() => { document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
 </script>
 </body>
 </html>
