@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V17.0 (Ciclo Inteligente)</title>
+    <title>Gaby Doces - V18.0 (Calendário Real)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -28,7 +28,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-primary small">V17.0 Ciclo</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V18.0 Real</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -62,7 +62,7 @@
     </div>
 
     <div class="tab-pane fade" id="tab-dash">
-        <h6 class="text-muted fw-bold mb-3">Cobrança Mensal Automática</h6>
+        <h6 class="text-muted fw-bold mb-3">Cobrança Mensal (Calendário Real)</h6>
         <div class="row g-2">
             <div class="col-12">
                 <div class="card card-dash bg-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
@@ -331,53 +331,48 @@
       });
   }
 
-  // --- FUNÇÃO INTELIGENTE DE CÁLCULO DE DATA ---
+  // --- FUNÇÃO CORRIGIDA PARA MÊS CURTO (V18) ---
   function calcularVencimento(diaPagamento, dataUltimaCompraISO) {
       if (!diaPagamento) return null;
       
-      const hoje = new Date();
-      hoje.setHours(0,0,0,0);
-      
-      let dataRef;
-      if (dataUltimaCompraISO) {
-          // Usa a data da compra como referência
-          dataRef = new Date(dataUltimaCompraISO + 'T00:00:00');
-      } else {
-          // Se não tem compra registrada, usa hoje
-          dataRef = new Date();
-      }
+      let dataRef = dataUltimaCompraISO ? new Date(dataUltimaCompraISO + 'T00:00:00') : new Date();
+      dataRef.setHours(0,0,0,0);
 
-      // Cria a data de vencimento no mês da compra
-      let vencimento = new Date(dataRef.getFullYear(), dataRef.getMonth(), diaPagamento);
+      let anoVenc = dataRef.getFullYear();
+      let mesVenc = dataRef.getMonth(); 
 
-      // A MÁGICA: Se comprou DEPOIS do dia do pagamento, vence no mês seguinte
+      // Se comprou depois do dia do pagamento, joga pro mês seguinte
       if (dataRef.getDate() > diaPagamento) {
-          vencimento.setMonth(vencimento.getMonth() + 1);
-      }
-      
-      // Ajuste se virou ano ou mês com menos dias
-      if (vencimento.getDate() !== diaPagamento) {
-          // Ex: dia 30 de fevereiro não existe, JS joga pra março. Mantemos assim ou ajustamos?
-          // O JS nativo ajusta bem (ex: 31 jan + 1 mês = 3 mar ou 28 fev dependendo do ano)
+          mesVenc++; 
+          if (mesVenc > 11) { 
+              mesVenc = 0;
+              anoVenc++;
+          }
       }
 
-      return vencimento;
+      // CORREÇÃO: Verifica qual o último dia daquele mês
+      // new Date(ano, mes+1, 0) retorna o último dia do mês "mes"
+      const ultimoDiaDoMes = new Date(anoVenc, mesVenc + 1, 0).getDate();
+      
+      // O dia final é o MENOR entre o dia de pagamento e o fim do mês
+      // Ex: Dia 30 em Fev (28) -> vence 28.
+      const diaFinal = Math.min(diaPagamento, ultimoDiaDoMes);
+
+      return new Date(anoVenc, mesVenc, diaFinal);
   }
 
   function obterEstadoVencimento(vencimento) {
       if (!vencimento) return 'SEM_DATA';
-      
       const hoje = new Date();
       hoje.setHours(0,0,0,0);
       const venc = new Date(vencimento);
       venc.setHours(0,0,0,0);
-
       if (venc.getTime() === hoje.getTime()) return 'HOJE';
       if (venc.getTime() < hoje.getTime()) return 'ATRASADO';
       return 'PRAZO';
   }
 
-  // 1. CLIENTES (LÓGICA DO DIA DO MÊS)
+  // 1. CLIENTES
   window.carregarClientes = async () => {
       const lista = document.getElementById('listaClientes');
       const busca = document.getElementById('buscaNome').value.toLowerCase();
@@ -413,7 +408,6 @@
               textColor = 'texto-devendo';
               
               if (diaPag > 0) {
-                  // CÁLCULO INTELIGENTE
                   const dataVenc = calcularVencimento(diaPag, c.ultima_venda);
                   const estado = obterEstadoVencimento(dataVenc);
                   const dataFormatada = dataVenc.toLocaleDateString('pt-BR');
@@ -468,7 +462,7 @@
       });
   };
 
-  // 2. WHATSAPP AUTOMÁTICO
+  // 2. WHATSAPP
   window.enviarZap = (nome, telefone, valor, tipo, dataTxt) => {
       if(!telefone || telefone.length < 8) return alert("Cliente sem telefone cadastrado!");
       const num = telefone.replace(/\D/g, '');
@@ -487,7 +481,7 @@
       window.open(url, '_blank');
   };
 
-  // 3. DASHBOARD INTELIGENTE
+  // 3. DASHBOARD
   window.filtrarRelatorio = async (tipo) => {
       const a = document.getElementById('areaRelatorio'); a.innerHTML='Carregando...';
       const q = query(collection(db, "clientes")); const snap = await getDocs(q);
@@ -524,10 +518,7 @@
               const diaPag = parseInt(c.dia_pagamento);
               const dataVenc = calcularVencimento(diaPag, c.ultima_venda);
               const estado = obterEstadoVencimento(dataVenc);
-              
-              if(estado==='HOJE') h++;
-              if(estado==='ATRASADO') a++;
-              if(estado==='PRAZO') p++;
+              if(estado==='HOJE') h++; if(estado==='ATRASADO') a++; if(estado==='PRAZO') p++;
           } 
       }); 
       document.getElementById('cntHoje').innerText=h; 
@@ -535,48 +526,22 @@
       document.getElementById('cntPrazo').innerText=p; 
   };
 
-  // 4. MÉTODOS PADRÃO MANTIDOS
+  // 4. MÉTODOS PADRÃO
   window.salvarNovoCliente = async () => { 
       const nome=document.getElementById('novoNome').value.toUpperCase(); 
       const setor=document.getElementById('novoSetor').value; 
       const tel=document.getElementById('novoTel').value; 
       const diaPag=document.getElementById('novoDiaPag').value; 
-      
       if(!nome) return alert("Nome!"); 
       const check=await getDocs(query(collection(db,"clientes"),where("nome","==",nome))); 
       if(!check.empty) return alert("Existe!"); 
-      
       const ref=await addDoc(collection(db,"clientes"),{nome, setor, telefone:tel, saldo:0, dia_pagamento: diaPag, ultima_venda: new Date().toISOString().split('T')[0]}); 
       await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'INFO', metodo:'SIS', valor:0, descricao:'Inicio', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); 
       alert("Salvo!"); document.querySelector('[data-bs-target="#tab-inicio"]').click(); carregarClientes(); 
   };
 
-  window.abrirEditarCliente = async (id) => { 
-      pedirSenha(async () => { 
-          const docRef = doc(db, "clientes", id); 
-          const snap = await getDoc(docRef); 
-          const c = snap.data(); 
-          document.getElementById('editId').value = id; 
-          document.getElementById('editNome').value = c.nome; 
-          document.getElementById('editSetor').value = c.setor; 
-          document.getElementById('editTel').value = c.telefone; 
-          document.getElementById('editDiaPag').value = c.dia_pagamento || ''; 
-          new bootstrap.Modal(document.getElementById('modalEditarCliente')).show(); 
-      }); 
-  };
-
-  window.salvarEdicaoCliente = async () => { 
-      const id = document.getElementById('editId').value; 
-      await updateDoc(doc(db, "clientes", id), { 
-          nome: document.getElementById('editNome').value.toUpperCase(), 
-          setor: document.getElementById('editSetor').value, 
-          telefone: document.getElementById('editTel').value, 
-          dia_pagamento: document.getElementById('editDiaPag').value 
-      }); 
-      bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); 
-      carregarClientes(); 
-      alert("Cliente atualizado!"); 
-  };
+  window.abrirEditarCliente = async (id) => { pedirSenha(async () => { const docRef = doc(db, "clientes", id); const snap = await getDoc(docRef); const c = snap.data(); document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome; document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone; document.getElementById('editDiaPag').value = c.dia_pagamento || ''; new bootstrap.Modal(document.getElementById('modalEditarCliente')).show(); }); };
+  window.salvarEdicaoCliente = async () => { const id = document.getElementById('editId').value; await updateDoc(doc(db, "clientes", id), { nome: document.getElementById('editNome').value.toUpperCase(), setor: document.getElementById('editSetor').value, telefone: document.getElementById('editTel').value, dia_pagamento: document.getElementById('editDiaPag').value }); bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); carregarClientes(); alert("Cliente atualizado!"); };
 
   window.carregarProdutos = async () => { const s = document.getElementById('selectProdVenda'); const l = document.getElementById('listaProdutos'); const q = query(collection(db, "produtos")); const snap = await getDocs(q); s.innerHTML = ''; l.innerHTML = ''; snap.forEach(d => { const p = d.data(); s.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; l.innerHTML += `<li class="list-group-item d-flex justify-content-between action-hover" style="cursor:pointer" onclick="abrirEditarProd('${d.id}', '${p.nome}', ${p.preco})">${p.nome} <span>R$ ${p.preco} ✏️</span></li>`; }); };
   window.abrirEditarProd = (id, nome, preco) => { document.getElementById('editProdId').value = id; document.getElementById('editProdNome').value = nome; document.getElementById('editProdPreco').value = preco; new bootstrap.Modal(document.getElementById('modalEditarProd')).show(); };
