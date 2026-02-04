@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V14.0 (Com WhatsApp)</title>
+    <title>Gaby Doces - V15.0 (Com PIX)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -28,7 +28,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-success small"><i class="bi bi-whatsapp"></i> V14.0</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-success small"><i class="bi bi-whatsapp"></i> PIX</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -357,8 +357,15 @@
           }
 
           const txtSaldo = devedor ? `DEVE R$ ${Math.abs(saldo).toFixed(2)}` : `CRÉDITO R$ ${saldo.toFixed(2)}`;
-          // Botão WhatsApp Simples
-          const btnZap = `<button class="btn btn-success btn-sm w-100 mt-1" onclick="enviarZap('${c.nome}', '${c.telefone}', ${Math.abs(saldo)}, 'COBRANCA')"><i class="bi bi-whatsapp"></i> Cobrar</button>`;
+          // Botão WhatsApp com Lógica Personalizada
+          let btnZap = '';
+          if (devedor) {
+              let tipoZap = 'GERAL';
+              if (c.vencimento === hoje) tipoZap = 'HOJE';
+              if (c.vencimento < hoje) tipoZap = 'ATRASADO';
+              
+              btnZap = `<button class="btn btn-success btn-sm w-100 mt-1" onclick="enviarZap('${c.nome}', '${c.telefone}', ${Math.abs(saldo)}, '${tipoZap}')"><i class="bi bi-whatsapp"></i> Cobrar</button>`;
+          }
 
           lista.innerHTML += `
             <div class="col-md-6 mb-2">
@@ -377,7 +384,7 @@
                             <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${c.id}', '${c.nome}', ${saldo})">Vender</button>
                             <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${c.id}')">Receber</button>
                         </div>
-                        ${devedor ? btnZap : ''}
+                        ${btnZap}
                         <div class="text-end mt-1">
                             <button class="btn btn-link btn-sm text-decoration-none text-muted" onclick="verExtrato('${c.id}')">📄 Detalhes</button>
                         </div>
@@ -387,21 +394,20 @@
       });
   };
 
-  // 2. FUNÇÃO WHATSAPP (INTEGRAÇÃO V14)
+  // 2. FUNÇÃO WHATSAPP (MENSAGENS PERSONALIZADAS COM PIX)
   window.enviarZap = (nome, telefone, valor, tipo) => {
       if(!telefone || telefone.length < 8) return alert("Cliente sem telefone cadastrado!");
       
-      // Limpa telefone (deixa so numeros)
       const num = telefone.replace(/\D/g, '');
-      const telFinal = num.length <= 11 ? "55" + num : num; // Adiciona 55 se faltar
+      const telFinal = num.length <= 11 ? "55" + num : num;
 
       let msg = "";
       if (tipo === 'HOJE') {
-          msg = `Olá ${nome}, tudo bem? Passando para lembrar do seu vencimento hoje na Gaby Doces. Valor: R$ ${valor.toFixed(2)}.`;
+          msg = `Olá ${nome}, tudo bem? Passando pra lembrar do vencimento hoje no valor de R$ ${valor.toFixed(2)}  Este é meu PIX 16988143766.`;
       } else if (tipo === 'ATRASADO') {
-          msg = `Oi ${nome}! Consta aqui um valor pendente de R$ ${valor.toFixed(2)} na Gaby Doces. Podemos acertar?`;
+          msg = `Olá ${nome}, constou uma pendência aqui de R$ ${valor.toFixed(2)}. Podemos agendar o pagamento? vou deixa meu  PIX 16988143766.`;
       } else {
-          msg = `Olá ${nome}, tudo bem? Sobre seu saldo na Gaby Doces de R$ ${valor.toFixed(2)}...`;
+          msg = `Olá ${nome}, tudo bem? Sobre seu saldo na Gaby Doces de R$ ${valor.toFixed(2)}... Este é meu PIX 16988143766.`;
       }
 
       const url = `https://wa.me/${telFinal}?text=${encodeURIComponent(msg)}`;
@@ -424,7 +430,6 @@
               if(tipo==='PRAZO' && c.vencimento>hoje) ok=true; 
               
               if(ok) {
-                  // Botão WhatsApp no relatório
                   const btn = `<button class="btn btn-success btn-sm" onclick="enviarZap('${c.nome}','${c.telefone}',${Math.abs(c.saldo)},'${tipo}')"><i class="bi bi-whatsapp"></i></button>`;
                   
                   html+=`<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -442,30 +447,22 @@
   
   window.carregarDashboard = async () => { const hoje=new Date().toISOString().split('T')[0]; const q=query(collection(db,"clientes")); const snap=await getDocs(q); let h=0, a=0, p=0; snap.forEach(d=>{ const c=d.data(); if(c.saldo<-0.01 && c.vencimento) { if(c.vencimento===hoje)h++; else if(c.vencimento<hoje)a++; else p++; } }); document.getElementById('cntHoje').innerText=h; document.getElementById('cntAtrasados').innerText=a; document.getElementById('cntPrazo').innerText=p; };
 
-  // 4. EDIÇÃO E EXCLUSÃO (MANTIDO DA V13)
+  // 4. MANTIDOS DA VERSÃO ANTERIOR
   window.abrirEditarCliente = async (id) => { pedirSenha(async () => { const docRef = doc(db, "clientes", id); const snap = await getDoc(docRef); const c = snap.data(); document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome; document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone; document.getElementById('editVenc').value = c.vencimento || ''; new bootstrap.Modal(document.getElementById('modalEditarCliente')).show(); }); };
   window.salvarEdicaoCliente = async () => { const id = document.getElementById('editId').value; await updateDoc(doc(db, "clientes", id), { nome: document.getElementById('editNome').value.toUpperCase(), setor: document.getElementById('editSetor').value, telefone: document.getElementById('editTel').value, vencimento: document.getElementById('editVenc').value }); bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); carregarClientes(); alert("Cliente atualizado!"); };
-  
-  // 5. PRODUTOS, CARRINHO E VENDAS
   window.carregarProdutos = async () => { const s = document.getElementById('selectProdVenda'); const l = document.getElementById('listaProdutos'); const q = query(collection(db, "produtos")); const snap = await getDocs(q); s.innerHTML = ''; l.innerHTML = ''; snap.forEach(d => { const p = d.data(); s.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome} (R$${p.preco})</option>`; l.innerHTML += `<li class="list-group-item d-flex justify-content-between action-hover" style="cursor:pointer" onclick="abrirEditarProd('${d.id}', '${p.nome}', ${p.preco})">${p.nome} <span>R$ ${p.preco} ✏️</span></li>`; }); };
   window.abrirEditarProd = (id, nome, preco) => { document.getElementById('editProdId').value = id; document.getElementById('editProdNome').value = nome; document.getElementById('editProdPreco').value = preco; new bootstrap.Modal(document.getElementById('modalEditarProd')).show(); };
   window.salvarEdicaoProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; const nome = document.getElementById('editProdNome').value.toUpperCase(); const preco = parseFloat(document.getElementById('editProdPreco').value); await updateDoc(doc(db, "produtos", id), { nome, preco }); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
   window.excluirProd = async () => { pedirSenha(async () => { const id = document.getElementById('editProdId').value; await deleteDoc(doc(db, "produtos", id)); bootstrap.Modal.getInstance(document.getElementById('modalEditarProd')).hide(); carregarProdutos(); }); };
   window.addProduto = async () => { const n = document.getElementById('prodNome').value.toUpperCase(); const p = parseFloat(document.getElementById('prodPreco').value); if(n && p) { await addDoc(collection(db, "produtos"), {nome: n, preco: p}); carregarProdutos(); document.getElementById('prodNome').value = ''; document.getElementById('prodPreco').value = ''; } };
-  
   window.addCarrinho = () => { const select = document.getElementById('selectProdVenda'); const qtd = parseFloat(document.getElementById('qtdProdVenda').value); const preco = parseFloat(select.value); const nome = select.options[select.selectedIndex].getAttribute('data-nome'); if(!nome) return; CARRINHO.push({ nome, qtd, total: preco * qtd }); TOTAL_CARRINHO += preco * qtd; atualizarCarrinho(); };
   window.removerItemCarrinho = (index) => { TOTAL_CARRINHO -= CARRINHO[index].total; CARRINHO.splice(index, 1); atualizarCarrinho(); };
   function atualizarCarrinho() { const lista = document.getElementById('listaCarrinho'); lista.innerHTML = ''; if (CARRINHO.length === 0) { lista.innerHTML = '<li class="list-group-item text-center small text-muted">Carrinho vazio</li>'; } else { CARRINHO.forEach((i, idx) => { lista.innerHTML += `<li class="list-group-item d-flex justify-content-between align-items-center p-1 small"><div>${i.qtd}x ${i.nome}</div><div><span class="me-2">R$ ${i.total.toFixed(2)}</span><button class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemCarrinho(${idx})">X</button></div></li>`; }); } document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`; }
-  
   window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; TOTAL_CARRINHO=0; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=`Venda: ${nome}`; const bloq=saldo<-1; document.getElementById('boxBloqueio').classList.toggle('d-none',!bloq); document.getElementById('areaVendaInputs').classList.toggle('d-none',bloq); new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
   window.finalizarVenda = async () => { if(!CARRINHO.length) return alert("Carrinho vazio!"); const id = document.getElementById('idClienteVenda').value; const tipo = document.querySelector('input[name="tipoVenda"]:checked').value; let data = document.getElementById('dataVenda').value; if(!data) data = new Date().toISOString().split('T')[0]; const ref = doc(db, "clientes", id); const snap = await getDoc(ref); let saldo = snap.data().saldo || 0; if(tipo === 'FIADO') { saldo -= TOTAL_CARRINHO; await updateDoc(ref, { saldo, ultima_venda: data }); } else { await updateDoc(ref, { ultima_venda: data }); } const desc = CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', '); await addDoc(collection(db, "transacoes"), { cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:desc, data, timestamp:new Date() }); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!"); };
-
-  // 6. HISTÓRICO
   window.verExtrato = async (id) => { const modal = new bootstrap.Modal(document.getElementById('modalExtrato')); modal.show(); const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = '<tr><td colspan="4" class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>'; try { const q = query(collection(db, "transacoes"), where("cliente_id", "==", id)); const snap = await getDocs(q); let dados = []; snap.forEach(d => dados.push({id: d.id, ...d.data()})); dados.sort((a, b) => new Date(b.timestamp.seconds * 1000) - new Date(a.timestamp.seconds * 1000)); tb.innerHTML = ''; if(dados.length === 0) tb.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Vazio.</td></tr>'; dados.forEach(t => { const dataEx = t.data ? formatarData(t.data) : "??"; const descEx = t.descricao || "-"; const valorEx = t.valor !== undefined ? parseFloat(t.valor).toFixed(2) : "0.00"; const isPgto = t.tipo === 'PAGAMENTO'; const cor = isPgto ? 'text-success' : 'text-danger'; const sinal = isPgto ? '+' : '-'; const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">VISTA</span>' : ''; tb.innerHTML += `<tr><td>${dataEx}</td><td><div class="fw-bold small">${t.tipo}${extra}</div><div class="text-muted small" style="font-size:0.75rem">${descEx}</div></td><td class="${cor} fw-bold text-end">${sinal}${valorEx}</td><td class="text-center"><button class="btn btn-sm btn-outline-danger border-0" onclick="excluirTransacao('${t.id}', '${id}', ${t.valor}, '${t.tipo}', '${t.metodo}')">🗑️</button></td></tr>`; }); } catch (e) { console.error(e); tb.innerHTML = `<tr><td colspan="4" class="text-danger small">Erro</td></tr>`; } };
   window.excluirTransacao = (idTransacao, idCliente, valor, tipo, metodo) => { pedirSenha(async () => { const refCli = doc(db, "clientes", idCliente); const snap = await getDoc(refCli); let saldoAtual = snap.data().saldo || 0; if (tipo === 'VENDA' && metodo === 'FIADO') { saldoAtual += valor; } else if (tipo === 'PAGAMENTO') { saldoAtual -= valor; } await updateDoc(refCli, { saldo: saldoAtual }); await deleteDoc(doc(db, "transacoes", idTransacao)); bootstrap.Modal.getInstance(document.getElementById('modalExtrato')).hide(); carregarClientes(); alert("Item excluído!"); }); };
   function formatarData(iso) { if(!iso) return ""; return iso.split('-').reverse().join('/'); }
-  
-  // OUTRAS
   window.salvarNovoCliente = async () => { const nome=document.getElementById('novoNome').value.toUpperCase(); const setor=document.getElementById('novoSetor').value; const tel=document.getElementById('novoTel').value; const venc=document.getElementById('novoVencimento').value; if(!nome) return alert("Nome!"); const check=await getDocs(query(collection(db,"clientes"),where("nome","==",nome))); if(!check.empty) return alert("Existe!"); const ref=await addDoc(collection(db,"clientes"),{nome, setor, telefone:tel, saldo:0, vencimento:venc}); await addDoc(collection(db,"transacoes"),{cliente_id:ref.id, tipo:'INFO', metodo:'SIS', valor:0, descricao:'Inicio', data:new Date().toISOString().split('T')[0], timestamp:new Date()}); alert("Salvo!"); document.querySelector('[data-bs-target="#tab-inicio"]').click(); carregarClientes(); };
   window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('valorPgto').value=''; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
   window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; if(!v) return alert("Valor?"); const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', metodo:'DINHEIRO', valor:v, descricao:'Pagamento', data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
