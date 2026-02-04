@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V11.0 (Correção Histórico)</title>
+    <title>Gaby Doces - V12.0 (Histórico Destravado)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
-        body { background-color: #f0f2f5; padding-bottom: 100px; font-family: sans-serif; }
+        body { background-color: #f8f9fa; padding-bottom: 100px; font-family: sans-serif; }
         .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
         .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
         
-        /* Cores de Status */
+        /* Status Cores */
         .card-cliente { border-left: 5px solid #ccc; }
         .status-devendo { border-left-color: #dc3545; background-color: #fff5f5; }
         .status-ok { border-left-color: #198754; background-color: #fff; }
@@ -29,8 +29,8 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V11.0</span></h5>
-        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 Atualizar</button>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V12.0</span></h5>
+        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
     <ul class="nav nav-pills nav-fill mb-4" id="menuPrincipal" role="tablist">
@@ -63,7 +63,7 @@
     </div>
 
     <div class="tab-pane fade" id="tab-dash">
-        <h6 class="text-muted fw-bold mb-3">Painel de Cobrança</h6>
+        <h6 class="text-muted fw-bold mb-3">Cobrança do Dia</h6>
         <div class="row g-2">
             <div class="col-12">
                 <div class="card card-dash bg-hoje p-3 shadow" onclick="filtrarRelatorio('HOJE')">
@@ -87,7 +87,7 @@
             </div>
         </div>
         <div id="areaRelatorio" class="mt-4">
-            <p class="text-center text-muted small">Toque nos cartões acima.</p>
+            <p class="text-center text-muted small">Clique nos cartões para ver a lista.</p>
         </div>
     </div>
 
@@ -164,7 +164,8 @@
                         <input type="radio" class="btn-check" name="tipoVenda" id="optVista" value="VISTA">
                         <label class="btn btn-outline-success w-50" for="optVista">🟢 À VISTA</label>
                     </div>
-                    <label class="small text-muted">Data:</label>
+                    
+                    <label class="small text-muted">Data da Venda:</label>
                     <input type="date" id="dataVenda" class="form-control mb-2">
                     <button class="btn btn-dark w-100 py-2" onclick="finalizarVenda()">✅ CONCLUIR</button>
                 </div>
@@ -191,19 +192,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalVencimento" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header"><h6 class="modal-title">Alterar Data</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">
-                <input type="hidden" id="idClienteVenc">
-                <input type="date" id="novaDataVenc" class="form-control mb-3">
-                <button class="btn btn-primary w-100" onclick="salvarVencimento()">Salvar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal fade" id="modalExtrato" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -216,12 +204,25 @@
                     <thead class="table-dark">
                         <tr>
                             <th style="width: 25%">Data</th>
-                            <th style="width: 50%">O que aconteceu?</th>
+                            <th style="width: 50%">Descrição</th>
                             <th style="width: 25%" class="text-end">Valor</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaExtrato"></tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalVencimento" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h6 class="modal-title">Alterar Data</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="idClienteVenc">
+                <input type="date" id="novaDataVenc" class="form-control mb-3">
+                <button class="btn btn-primary w-100" onclick="salvarVencimento()">Salvar</button>
             </div>
         </div>
     </div>
@@ -334,7 +335,7 @@
       });
   };
 
-  // 2. NOVO CLIENTE (CORRIGIDO PARA CRIAR HISTÓRICO INICIAL)
+  // 2. NOVO CLIENTE (COM HISTÓRICO INICIAL)
   window.salvarNovoCliente = async () => {
       const nome = document.getElementById('novoNome').value.toUpperCase();
       const setor = document.getElementById('novoSetor').value;
@@ -346,12 +347,11 @@
       const check = await getDocs(query(collection(db, "clientes"), where("nome", "==", nome)));
       if(!check.empty) return alert("Cliente já existe!");
 
-      // 1. Cria o Cliente
       const ref = await addDoc(collection(db, "clientes"), { 
           nome, setor, telefone: tel, saldo: 0, vencimento: venc 
       });
 
-      // 2. Cria a primeira linha do histórico para não dar erro
+      // Cria histórico inicial para não bugar
       await addDoc(collection(db, "transacoes"), {
           cliente_id: ref.id,
           tipo: 'INFO',
@@ -367,7 +367,7 @@
       carregarClientes();
   };
 
-  // 3. EXTRATO (PROTEGIDO)
+  // 3. EXTRATO (DESTRAVADO - SEM ORDERBY NO QUERY)
   window.verExtrato = async (id) => {
       const modal = new bootstrap.Modal(document.getElementById('modalExtrato'));
       modal.show();
@@ -375,21 +375,26 @@
       tb.innerHTML = '<tr><td colspan="3" class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
       
       try {
-          const q = query(collection(db, "transacoes"), where("cliente_id", "==", id), orderBy("timestamp", "desc"));
+          // REMOVIDO "orderBy" daqui para não dar erro de Índice no Firebase
+          const q = query(collection(db, "transacoes"), where("cliente_id", "==", id));
           const snap = await getDocs(q);
-          tb.innerHTML = '';
           
           if(snap.empty) {
               tb.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Sem movimentações.</td></tr>';
               return;
           }
 
-          snap.forEach(d => {
-              const t = d.data();
-              // Tratamento de falhas de dados antigos
+          // Ordenação feita aqui no Javascript (Mais novo primeiro)
+          let dados = [];
+          snap.forEach(d => dados.push(d.data()));
+          dados.sort((a, b) => new Date(b.timestamp.seconds * 1000) - new Date(a.timestamp.seconds * 1000));
+
+          tb.innerHTML = '';
+          
+          dados.forEach(t => {
               const dataEx = t.data ? formatarData(t.data) : "??/??";
               const descEx = t.descricao || "Sem descrição";
-              const valorEx = t.valor ? parseFloat(t.valor).toFixed(2) : "0.00";
+              const valorEx = t.valor !== undefined ? parseFloat(t.valor).toFixed(2) : "0.00";
               
               const isPgto = t.tipo === 'PAGAMENTO';
               const isInfo = t.tipo === 'INFO';
@@ -398,25 +403,28 @@
               if (isPgto) { cor = 'text-success'; sinal = '+'; }
               if (isInfo) { cor = 'text-muted'; sinal = ''; }
 
+              // Destaque para Pagamento À Vista
+              const extra = t.metodo === 'VISTA' ? ' <span class="badge bg-success" style="font-size:0.6em">À VISTA</span>' : '';
+
               tb.innerHTML += `
                 <tr>
                     <td>${dataEx}</td>
                     <td>
-                        <div class="fw-bold small">${t.tipo}</div>
+                        <div class="fw-bold small">${t.tipo}${extra}</div>
                         <div class="text-muted small">${descEx}</div>
                     </td>
-                    <td class="${cor} fw-bold text-end">${sinal} ${valorEx}</td>
+                    <td class="${cor} fw-bold text-end">${sinal} R$ ${valorEx}</td>
                 </tr>`;
           });
       } catch (e) {
           console.error(e);
-          tb.innerHTML = '<tr><td colspan="3" class="text-danger">Erro ao carregar. Tente novamente.</td></tr>';
+          tb.innerHTML = `<tr><td colspan="3" class="text-danger small">Erro: ${e.message}</td></tr>`;
       }
   };
 
   function formatarData(iso) { if(!iso) return ""; return iso.split('-').reverse().join('/'); }
 
-  // 4. VENDAS, PAGAMENTOS E OUTROS
+  // 4. VENDAS & CARRINHO
   window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; TOTAL_CARRINHO=0; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=`Venda: ${nome}`; const bloq=saldo<-1; document.getElementById('boxBloqueio').classList.toggle('d-none',!bloq); document.getElementById('areaVendaInputs').classList.toggle('d-none',bloq); new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
   window.desbloquearComSenha = () => { pedirSenha(()=>{ document.getElementById('boxBloqueio').classList.add('d-none'); document.getElementById('areaVendaInputs').classList.remove('d-none'); }); };
   window.addCarrinho = () => { const s=document.getElementById('selectProdVenda'); const q=parseFloat(document.getElementById('qtdProdVenda').value); const p=parseFloat(s.value); const n=s.options[s.selectedIndex].getAttribute('data-nome'); if(!n)return; CARRINHO.push({nome:n,qtd:q,total:p*q}); TOTAL_CARRINHO+=p*q; atualizarCarrinho(); };
