@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V25.1 Import Fix</title>
+    <title>Gaby Doces - V26.0 Final Fix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -27,7 +27,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-danger small">V25.1 Fix</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-primary small">V26.0</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -90,16 +90,18 @@
 
     <div class="tab-pane fade" id="tab-config">
         
-        <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-warning">
-            <h6 class="fw-bold text-warning">📤 Importar Pedidos (Layout V25.1)</h6>
+        <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-success">
+            <h6 class="fw-bold text-success">📤 Importar Pedidos (Layout Foto)</h6>
             <div class="alert alert-light border small text-muted">
-                <strong>Colunas:</strong><br>
-                A: Setor | <strong>B: Nome (Obrigatório)</strong><br>
-                C até O: Pares de Produto e Quantidade.<br>
-                <strong>P: Telefone</strong>
+                <strong>O sistema lê assim:</strong><br>
+                A: Setor | <strong>B: Nome</strong><br>
+                C+D: Prod1/Qtd1 | E+F: Prod2/Qtd2<br>
+                G+H: Prod3/Qtd3 | I+J: Prod4/Qtd4<br>
+                K+L: Prod5/Qtd5 | M+N: Prod6/Qtd6<br>
+                <strong>O: Telefone</strong>
             </div>
-            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls">
-            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E CADASTRAR</button>
+            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls, .xlsb">
+            <button class="btn btn-success w-100 fw-bold" id="btnImportar" onclick="importarExcel()">LER PLANILHA E PROCESSAR</button>
             <div id="statusImport" class="small mt-2 text-center text-dark fw-bold"></div>
         </div>
 
@@ -263,7 +265,6 @@
       window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // --- EXPORTAR E IMPORTAR (LÓGICA CORRIGIDA) ---
   window.exportarExcelRelatorio = async () => {
       const snapCli = await getDocs(collection(db, "clientes"));
       let dados = [];
@@ -280,15 +281,16 @@
       XLSX.writeFile(wb, "GabyDoces_Auditoria.xlsx");
   };
 
+  // --- IMPORTAÇÃO EXCEL CORRIGIDA (V26) ---
   window.importarExcel = async () => {
     const fileInput = document.getElementById('arquivoExcel');
     const statusDiv = document.getElementById('statusImport');
     
     if(!fileInput.files.length) { alert("Selecione um arquivo Excel!"); return; }
     
-    statusDiv.innerText = "Carregando produtos e lendo arquivo...";
+    statusDiv.innerText = "Carregando produtos e processando...";
     
-    // 1. Carregar Tabela de Preços do Banco
+    // 1. Tabela de Preços
     const snapProds = await getDocs(collection(db, "produtos"));
     const mapaPrecos = {};
     snapProds.forEach(d => {
@@ -303,12 +305,11 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            // Ler como Matriz (A=0, B=1...)
-            const json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+            const json = XLSX.utils.sheet_to_json(firstSheet, {header: 1}); // Matriz pura
 
-            statusDiv.innerText = `Processando ${json.length} linhas...`;
+            statusDiv.innerText = `Lendo ${json.length} linhas...`;
             
-            // 2. Mapear Clientes Existentes
+            // 2. Mapear Clientes (Para não duplicar)
             const snapExistentes = await getDocs(collection(db, "clientes"));
             const mapaClientes = {}; 
             snapExistentes.forEach(d => {
@@ -318,36 +319,38 @@
             let countVendas = 0;
             let countNovos = 0;
 
-            // Começa do index 1 para pular cabeçalho
+            // Começa da linha 1 (pula cabeçalho linha 0)
             for(let i = 1; i < json.length; i++) {
                 let row = json[i];
                 if(!row || row.length < 2) continue;
 
-                // Colunas Fixas
-                let setor = (row[0] || "RUA").toString().toUpperCase();
-                let nome = (row[1] || "").toString().toUpperCase().trim();
-                let telefone = (row[15] || "").toString(); // Coluna P (Index 15)
+                // Colunas Fixas (Índices baseados na imagem)
+                let setor = (row[0] || "RUA").toString().toUpperCase(); // Col A (0)
+                let nome = (row[1] || "").toString().toUpperCase().trim(); // Col B (1)
+                let telefone = (row[14] || "").toString().replace(/\D/g, ""); // Col O (14) - Era P antes
 
-                if(!nome) continue; // Sem nome, pula
+                if(!nome) continue;
 
-                // Lógica de Produtos: Varrer da Coluna C (2) até O (14)
+                // Varrer Pares de Produto: 2/3, 4/5, 6/7, 8/9, 10/11, 12/13
                 let itensVenda = [];
                 let valorTotalLinha = 0;
 
-                // Loop: 2, 4, 6, 8, 10, 12, 14 (Colunas de Nomes de Produtos)
-                for(let k = 2; k <= 14; k += 2) {
+                // Colunas C, E, G, I, K, M (Índices: 2, 4, 6, 8, 10, 12)
+                for(let k = 2; k <= 12; k += 2) {
                     let nomeProd = (row[k] || "").toString().toUpperCase().trim();
-                    let qtd = parseFloat(row[k+1]); // Coluna seguinte é quantidade
+                    let qtdRaw = row[k+1]; // Quantidade na coluna seguinte
+                    let qtd = parseFloat(qtdRaw);
 
-                    if(nomeProd && qtd > 0) {
-                        let precoUnit = mapaPrecos[nomeProd] || 0; // Se não achar, R$ 0,00
+                    // Só processa se tiver nome E quantidade válida (maior que 0)
+                    if(nomeProd && !isNaN(qtd) && qtd > 0) {
+                        let precoUnit = mapaPrecos[nomeProd] || 0; // Se não tiver preço, assume 0
                         let totalItem = precoUnit * qtd;
                         valorTotalLinha += totalItem;
                         itensVenda.push(`${qtd}x ${nomeProd}`);
                     }
                 }
 
-                // --- CADASTRO/ATUALIZAÇÃO ---
+                // --- LÓGICA DE CADASTRO ---
                 let clienteId = null;
                 let saldoAtual = 0;
 
@@ -356,11 +359,11 @@
                     clienteId = mapaClientes[nome].id;
                     saldoAtual = mapaClientes[nome].saldo;
                 } else {
-                    // Cadastrar Novo (AGORA OBRIGATÓRIO SE NÃO EXISTIR)
+                    // Criar Novo
                     const docRef = await addDoc(collection(db, "clientes"), { 
                         nome: nome, 
                         setor: setor, 
-                        telefone: telefone, 
+                        telefone: telefone || "", 
                         dia_pagamento: "", 
                         saldo: 0 
                     });
@@ -369,8 +372,8 @@
                     countNovos++;
                 }
 
-                // Se houver compras na linha, lança a dívida
-                if(valorTotalLinha > 0) {
+                // --- LÓGICA DE VENDA (CORRIGIDA: Salva mesmo se valor for 0, desde que tenha itens) ---
+                if(itensVenda.length > 0) {
                     const novoSaldo = saldoAtual - valorTotalLinha;
                     await updateDoc(doc(db, "clientes", clienteId), { 
                         saldo: novoSaldo,
@@ -381,24 +384,24 @@
                         cliente_id: clienteId,
                         tipo: 'VENDA',
                         metodo: 'FIADO',
-                        valor: valorTotalLinha,
+                        valor: valorTotalLinha, // Pode ser 0 se não tiver preço cadastrado
                         descricao: itensVenda.join(', '),
                         data: new Date().toISOString().split('T')[0],
                         timestamp: new Date()
                     });
-                    // Atualiza saldo no mapa local para próxima iteração se houver duplicidade
+                    
                     mapaClientes[nome].saldo = novoSaldo;
                     countVendas++;
                 }
             }
-            alert(`Concluído!\nNovos Clientes: ${countNovos}\nVendas Lançadas: ${countVendas}`);
+            alert(`Processado!\nNovos Clientes: ${countNovos}\nPedidos Importados: ${countVendas}\n(Se o valor saiu R$ 0,00, cadastre o produto na aba Prod com o NOME EXATO da planilha e importe de novo ou edite o saldo).`);
             statusDiv.innerText = "";
             fileInput.value = "";
             carregarClientes();
 
         } catch (error) {
             console.error(error);
-            alert("Erro! Verifique se a planilha tem cabeçalho na linha 1 e dados a partir da 2.");
+            alert("Erro! Verifique se o arquivo está correto.");
             statusDiv.innerText = "Erro.";
         }
     };
