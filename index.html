@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V24.1 Import Fix</title>
+    <title>Gaby Doces - V25.0 Smart Import</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -27,7 +27,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-danger small">V24.1 Fix</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-success small">V25.0 Smart</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -91,24 +91,30 @@
     <div class="tab-pane fade" id="tab-config">
         
         <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-warning">
-            <h6 class="fw-bold text-warning">📤 Importar Clientes e Dívidas (Excel)</h6>
-            <p class="small text-muted mb-2">Colunas: <strong>NOME, TELEFONE, SETOR, DIA, DEVEDOR</strong>.<br>Nota: Se o cliente já existir, apenas adicionaremos a dívida nova.</p>
-            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls">
-            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E PROCESSAR</button>
-            <div id="statusImport" class="small mt-2 text-center text-muted"></div>
+            <h6 class="fw-bold text-warning">📤 Importar Planilha de Pedidos</h6>
+            <div class="alert alert-light border small text-muted">
+                <strong>Ordem das colunas:</strong><br>
+                A: Setor | B: Nome do Cliente<br>
+                C: Produto 1 | D: Qtd 1<br>
+                E: Produto 2 | F: Qtd 2<br>
+                G: Produto 3 | H: Qtd 3<br>
+                I: Produto 4 | J: Qtd 4<br>
+                K: Produto 5 | L: Qtd 5<br>
+                M: Telefone (no final)
+            </div>
+            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls, .xlsb">
+            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER E PROCESSAR PEDIDOS</button>
+            <div id="statusImport" class="small mt-2 text-center text-dark fw-bold"></div>
         </div>
 
         <button class="btn btn-dark w-100 mb-4 fw-bold shadow-sm" onclick="exportarExcelRelatorio()">📥 BAIXAR RELATÓRIO COMPLETO (EXCEL)</button>
         
         <div class="card p-3 shadow-sm border-0">
-            <h6 class="fw-bold">Personalizar Mensagens (Etiquetas V20)</h6>
-            <div class="mb-2"><label class="small fw-bold">Sua Chave PIX:</label><input type="text" id="cfgPix" class="form-control" onchange="salvarTemplates()"></div>
+            <h6 class="fw-bold">Personalizar Mensagens</h6>
+            <div class="mb-2"><label class="small fw-bold">Chave PIX:</label><input type="text" id="cfgPix" class="form-control" onchange="salvarTemplates()"></div>
             <div class="mb-2"><label class="small fw-bold">Vence Hoje:</label><textarea id="msgHoje" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
             <div class="mb-2"><label class="small fw-bold">Atrasados:</label><textarea id="msgAtrasado" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
             <div class="mb-2"><label class="small fw-bold">A Vencer:</label><textarea id="msgAvencer" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-            <div class="p-2 bg-light small rounded mt-2">
-                <strong>Tags:</strong> <span class="tag-helper">{nome}</span> <span class="tag-helper">{valor}</span> <span class="tag-helper">{vencimento}</span> <span class="tag-helper">{produtos}</span> <span class="tag-helper">{pix}</span>
-            </div>
         </div>
     </div>
 </div>
@@ -261,7 +267,7 @@
       window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // --- EXPORTAR E IMPORTAR EXCEL ---
+  // --- EXPORTAR E IMPORTAR (LÓGICA NOVA) ---
   window.exportarExcelRelatorio = async () => {
       const snapCli = await getDocs(collection(db, "clientes"));
       let dados = [];
@@ -284,7 +290,16 @@
     
     if(!fileInput.files.length) { alert("Selecione um arquivo Excel!"); return; }
     
-    statusDiv.innerText = "Lendo arquivo...";
+    statusDiv.innerText = "Carregando produtos e lendo arquivo...";
+    
+    // 1. Carregar Tabela de Preços do Banco
+    const snapProds = await getDocs(collection(db, "produtos"));
+    const mapaPrecos = {};
+    snapProds.forEach(d => {
+        // Normaliza para maiúsculo e sem espaços
+        mapaPrecos[d.data().nome.toUpperCase().trim()] = d.data().preco;
+    });
+
     const file = fileInput.files[0];
     const reader = new FileReader();
 
@@ -293,85 +308,103 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(firstSheet);
+            // Ler como Matriz de Arrays (header: 1) para pegar por posição (Col A=0, B=1, etc)
+            const json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
 
             statusDiv.innerText = `Processando ${json.length} linhas...`;
             
-            // Buscar clientes existentes (Mapear Nome -> ID e Saldo Atual)
+            // 2. Mapear Clientes Existentes
             const snapExistentes = await getDocs(collection(db, "clientes"));
-            const mapaClientes = {}; // Chave: NomeUpper, Valor: {id, saldo}
+            const mapaClientes = {}; 
             snapExistentes.forEach(d => {
-                mapaClientes[d.data().nome.toUpperCase()] = { id: d.id, saldo: d.data().saldo || 0 };
+                mapaClientes[d.data().nome.toUpperCase().trim()] = { id: d.id, saldo: d.data().saldo || 0 };
             });
 
-            let countNovos = 0;
-            let countDividas = 0;
+            let countVendas = 0;
 
-            for(let row of json) {
-                let nome = row['NOME'] || row['Nome'] || row['Cliente'];
-                let tel = row['TELEFONE'] || row['Telefone'] || row['Celular'] || '';
-                let setor = row['SETOR'] || row['Setor'] || 'RUA';
-                let dia = row['DIA'] || row['Dia'] || '';
-                let valorDevido = parseFloat(row['DEVEDOR'] || row['Valor'] || row['Saldo'] || 0);
+            // Começa do index 1 para pular cabeçalho (se houver)
+            for(let i = 1; i < json.length; i++) {
+                let row = json[i];
+                if(!row || row.length < 2) continue; // Linha vazia
+
+                // Mapeamento das Colunas
+                let setor = (row[0] || "RUA").toString().toUpperCase();
+                let nome = (row[1] || "").toString().toUpperCase().trim();
+                let telefone = (row[12] || "").toString(); // Coluna M = index 12
 
                 if(!nome) continue;
-                nome = nome.toString().toUpperCase().trim();
-                let clienteId = null;
-                let saldoAtual = 0;
 
-                // 1. Identificar ou Criar Cliente
-                if(mapaClientes[nome]) {
-                    // Já existe
-                    clienteId = mapaClientes[nome].id;
-                    saldoAtual = mapaClientes[nome].saldo;
-                } else {
-                    // Criar Novo
-                    const docRef = await addDoc(collection(db, "clientes"), { 
-                        nome: nome, 
-                        setor: setor.toString().toUpperCase(), 
-                        telefone: tel.toString(), 
-                        dia_pagamento: dia.toString(), 
-                        saldo: 0 
-                    });
-                    clienteId = docRef.id;
-                    saldoAtual = 0;
-                    mapaClientes[nome] = { id: clienteId, saldo: 0 }; // Atualiza mapa local
-                    countNovos++;
+                // Montar lista de produtos dessa linha
+                let itensVenda = [];
+                let valorTotalLinha = 0;
+
+                // Pares de Produto (Col) e Qtd (Col+1)
+                // C(2)+D(3), E(4)+F(5), G(6)+H(7), I(8)+J(9), K(10)+L(11)
+                const indicesProdutos = [2, 4, 6, 8, 10];
+                
+                for(let colProd of indicesProdutos) {
+                    let nomeProd = (row[colProd] || "").toString().toUpperCase().trim();
+                    let qtd = parseFloat(row[colProd + 1]);
+
+                    if(nomeProd && qtd > 0) {
+                        let precoUnit = mapaPrecos[nomeProd] || 0;
+                        let totalItem = precoUnit * qtd;
+                        valorTotalLinha += totalItem;
+                        itensVenda.push(`${qtd}x ${nomeProd}`);
+                    }
                 }
 
-                // 2. Lançar Dívida (Independente se é novo ou antigo)
-                if(valorDevido > 0) {
-                    // Atualiza Saldo
-                    const novoSaldo = saldoAtual - valorDevido;
+                if(valorTotalLinha > 0) {
+                    let clienteId = null;
+                    let saldoAtual = 0;
+
+                    // Verifica Cliente
+                    if(mapaClientes[nome]) {
+                        clienteId = mapaClientes[nome].id;
+                        saldoAtual = mapaClientes[nome].saldo;
+                    } else {
+                        // Cria Novo Cliente
+                        const docRef = await addDoc(collection(db, "clientes"), { 
+                            nome: nome, 
+                            setor: setor, 
+                            telefone: telefone, 
+                            dia_pagamento: "", 
+                            saldo: 0 
+                        });
+                        clienteId = docRef.id;
+                        mapaClientes[nome] = { id: clienteId, saldo: 0 };
+                    }
+
+                    // Lança a Venda/Dívida
+                    const novoSaldo = saldoAtual - valorTotalLinha;
                     await updateDoc(doc(db, "clientes", clienteId), { 
                         saldo: novoSaldo,
-                        ultima_venda: new Date().toISOString().split('T')[0] 
+                        ultima_venda: new Date().toISOString().split('T')[0]
                     });
-                    
-                    // Registra Transação
+
                     await addDoc(collection(db, "transacoes"), {
                         cliente_id: clienteId,
                         tipo: 'VENDA',
                         metodo: 'FIADO',
-                        valor: valorDevido,
-                        descricao: 'Saldo Importado Excel',
+                        valor: valorTotalLinha,
+                        descricao: itensVenda.join(', '),
                         data: new Date().toISOString().split('T')[0],
                         timestamp: new Date()
                     });
-                    
-                    // Atualiza mapa local para evitar erros se tiver 2 linhas do mesmo cliente
+
+                    // Atualiza mapa local
                     mapaClientes[nome].saldo = novoSaldo;
-                    countDividas++;
+                    countVendas++;
                 }
             }
-            alert(`Processado!\nNovos Clientes: ${countNovos}\nDívidas Lançadas: ${countDividas}`);
+            alert(`Processado!\nVendas Lançadas: ${countVendas}`);
             statusDiv.innerText = "";
             fileInput.value = "";
             carregarClientes();
 
         } catch (error) {
             console.error(error);
-            alert("Erro ao ler planilha. Verifique o console.");
+            alert("Erro ao ler planilha. Verifique se as colunas estão certas (A=Setor, B=Nome, C=Prod, D=Qtd...)");
             statusDiv.innerText = "Erro.";
         }
     };
@@ -416,7 +449,7 @@
       document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`;
   }
 
-  // --- FUNÇÕES DE RESTAURAÇÃO ---
+  // --- FUNÇÕES GERAIS ---
   window.salvarNovoCliente = async () => {
       const nome = document.getElementById('novoNome').value.toUpperCase();
       const setor = document.getElementById('novoSetor').value;
@@ -472,7 +505,6 @@
       await setDoc(doc(db, "config", "templates"), TEMPLATES); 
   };
 
-  // --- OUTROS ---
   window.addProduto = async () => { const n=document.getElementById('prodNome').value.toUpperCase(); const p=parseFloat(document.getElementById('prodPreco').value); if(n&&p) await addDoc(collection(db,"produtos"),{nome:n, preco:p}); carregarProdutos(); };
   window.carregarProdutos = async () => { const s=document.getElementById('selectProdVenda'); const l=document.getElementById('listaProdutos'); const sn=await getDocs(collection(db,"produtos")); s.innerHTML=''; l.innerHTML=''; sn.forEach(d=>{ const p=d.data(); s.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`; l.innerHTML+=`<li class="list-group-item d-flex justify-content-between"><span>${p.nome}</span><b>R$ ${p.preco.toFixed(2)}</b></li>`; }); };
   window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=nome; new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
