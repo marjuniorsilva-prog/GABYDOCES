@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V23.0 Final</title>
+    <title>Gaby Doces - V24.0 Import</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -27,7 +27,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-dark small">V23.0 Final</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-primary small">V24.0 Import</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -89,6 +89,15 @@
     </div>
 
     <div class="tab-pane fade" id="tab-config">
+        
+        <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-warning">
+            <h6 class="fw-bold text-warning">📤 Importar Clientes e Dívidas (Excel)</h6>
+            <p class="small text-muted mb-2">A planilha deve ter colunas: <strong>NOME, TELEFONE, SETOR, DIA, DEVEDOR</strong> (Valor que deve).</p>
+            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls">
+            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E CADASTRAR</button>
+            <div id="statusImport" class="small mt-2 text-center text-muted"></div>
+        </div>
+
         <button class="btn btn-dark w-100 mb-4 fw-bold shadow-sm" onclick="exportarExcelRelatorio()">📥 BAIXAR RELATÓRIO COMPLETO (EXCEL)</button>
         
         <div class="card p-3 shadow-sm border-0">
@@ -146,7 +155,6 @@
       sels.forEach(s => { for(let i=1; i<=31; i++) s.innerHTML += `<option value="${i}">Dia ${i}</option>`; });
   }
 
-  // Lógica de Calendário Real
   function calcularVencimento(diaPag, ultimaVenda) {
       if (!diaPag) return null;
       let d = ultimaVenda ? new Date(ultimaVenda + 'T00:00:00') : new Date();
@@ -200,7 +208,7 @@
       });
   };
 
-  // --- COBRANÇA (V23 COM TOTAIS EM TODAS AS ABAS) ---
+  // --- COBRANÇA ---
   window.abrirSubAba = async (tipo) => {
       document.querySelectorAll('.btn-sub-cobranca').forEach(b => b.classList.remove('active'));
       document.getElementById(`btn-sub-${tipo}`).classList.add('active');
@@ -208,7 +216,6 @@
       area.innerHTML = 'Carregando...';
       const snapCli = await getDocs(collection(db, "clientes"));
       let clientes = []; snapCli.forEach(d => clientes.push({id: d.id, ...d.data()}));
-      const hoje = new Date().toISOString().split('T')[0];
       let html = "";
       let somaTotal = 0;
 
@@ -243,7 +250,6 @@
       area.innerHTML = html || "<p class='text-center mt-4 text-muted'>Nenhum registro encontrado.</p>";
   };
 
-  // --- WHATSAPP E EXCEL (BASE V20) ---
   window.prepararZap = async (id, tipo, dataVenc) => {
       const snap = await getDoc(doc(db, "clientes", id));
       const c = snap.data();
@@ -255,6 +261,7 @@
       window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  // --- EXPORTAR E IMPORTAR EXCEL ---
   window.exportarExcelRelatorio = async () => {
       const snapCli = await getDocs(collection(db, "clientes"));
       let dados = [];
@@ -271,7 +278,88 @@
       XLSX.writeFile(wb, "GabyDoces_Auditoria.xlsx");
   };
 
-  // --- CARRINHO COM BOTÃO X ---
+  window.importarExcel = async () => {
+    const fileInput = document.getElementById('arquivoExcel');
+    const statusDiv = document.getElementById('statusImport');
+    
+    if(!fileInput.files.length) { alert("Selecione um arquivo Excel!"); return; }
+    
+    statusDiv.innerText = "Lendo arquivo...";
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(firstSheet);
+
+            statusDiv.innerText = `Processando ${json.length} linhas...`;
+            
+            // Buscar clientes existentes para não duplicar
+            const snapExistentes = await getDocs(collection(db, "clientes"));
+            const existentes = new Set();
+            snapExistentes.forEach(d => existentes.add(d.data().nome.toUpperCase()));
+
+            let countNovos = 0;
+            let countAtualizados = 0;
+
+            for(let row of json) {
+                // Mapeamento das colunas (Flexível)
+                let nome = row['NOME'] || row['Nome'] || row['Cliente'];
+                let tel = row['TELEFONE'] || row['Telefone'] || row['Celular'] || '';
+                let setor = row['SETOR'] || row['Setor'] || 'RUA';
+                let dia = row['DIA'] || row['Dia'] || '';
+                let valorDevido = parseFloat(row['DEVEDOR'] || row['Valor'] || row['Saldo'] || 0);
+
+                if(!nome) continue;
+                nome = nome.toString().toUpperCase().trim();
+
+                if(!existentes.has(nome)) {
+                    // Criar Novo Cliente
+                    const docRef = await addDoc(collection(db, "clientes"), { 
+                        nome: nome, 
+                        setor: setor.toString().toUpperCase(), 
+                        telefone: tel.toString(), 
+                        dia_pagamento: dia.toString(), 
+                        saldo: 0 
+                    });
+                    
+                    // Se tiver dívida, lança a venda inicial
+                    if(valorDevido > 0) {
+                        await updateDoc(docRef, { saldo: -valorDevido, ultima_venda: new Date().toISOString().split('T')[0] });
+                        await addDoc(collection(db, "transacoes"), {
+                            cliente_id: docRef.id,
+                            tipo: 'VENDA',
+                            metodo: 'FIADO',
+                            valor: valorDevido,
+                            descricao: 'Saldo Importado Excel',
+                            data: new Date().toISOString().split('T')[0],
+                            timestamp: new Date()
+                        });
+                    }
+                    countNovos++;
+                } else {
+                    // Cliente já existe (podemos atualizar o saldo se quiser, mas por segurança pulei)
+                    // console.log(`Cliente ${nome} já existe.`);
+                }
+            }
+            alert(`Sucesso!\nNovos clientes: ${countNovos}`);
+            statusDiv.innerText = "";
+            fileInput.value = "";
+            carregarClientes();
+
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao ler planilha. Verifique o formato.");
+            statusDiv.innerText = "Erro.";
+        }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // --- CARRINHO ---
   window.addCarrinho = () => {
       const s = document.getElementById('selectProdVenda');
       const q = parseFloat(document.getElementById('qtdProdVenda').value);
