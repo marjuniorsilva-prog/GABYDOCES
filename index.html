@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V24.0 Import</title>
+    <title>Gaby Doces - V24.1 Import Fix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -27,7 +27,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-primary small">V24.0 Import</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-danger small">V24.1 Fix</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -92,9 +92,9 @@
         
         <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-warning">
             <h6 class="fw-bold text-warning">📤 Importar Clientes e Dívidas (Excel)</h6>
-            <p class="small text-muted mb-2">A planilha deve ter colunas: <strong>NOME, TELEFONE, SETOR, DIA, DEVEDOR</strong> (Valor que deve).</p>
+            <p class="small text-muted mb-2">Colunas: <strong>NOME, TELEFONE, SETOR, DIA, DEVEDOR</strong>.<br>Nota: Se o cliente já existir, apenas adicionaremos a dívida nova.</p>
             <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls">
-            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E CADASTRAR</button>
+            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E PROCESSAR</button>
             <div id="statusImport" class="small mt-2 text-center text-muted"></div>
         </div>
 
@@ -297,16 +297,17 @@
 
             statusDiv.innerText = `Processando ${json.length} linhas...`;
             
-            // Buscar clientes existentes para não duplicar
+            // Buscar clientes existentes (Mapear Nome -> ID e Saldo Atual)
             const snapExistentes = await getDocs(collection(db, "clientes"));
-            const existentes = new Set();
-            snapExistentes.forEach(d => existentes.add(d.data().nome.toUpperCase()));
+            const mapaClientes = {}; // Chave: NomeUpper, Valor: {id, saldo}
+            snapExistentes.forEach(d => {
+                mapaClientes[d.data().nome.toUpperCase()] = { id: d.id, saldo: d.data().saldo || 0 };
+            });
 
             let countNovos = 0;
-            let countAtualizados = 0;
+            let countDividas = 0;
 
             for(let row of json) {
-                // Mapeamento das colunas (Flexível)
                 let nome = row['NOME'] || row['Nome'] || row['Cliente'];
                 let tel = row['TELEFONE'] || row['Telefone'] || row['Celular'] || '';
                 let setor = row['SETOR'] || row['Setor'] || 'RUA';
@@ -315,9 +316,16 @@
 
                 if(!nome) continue;
                 nome = nome.toString().toUpperCase().trim();
+                let clienteId = null;
+                let saldoAtual = 0;
 
-                if(!existentes.has(nome)) {
-                    // Criar Novo Cliente
+                // 1. Identificar ou Criar Cliente
+                if(mapaClientes[nome]) {
+                    // Já existe
+                    clienteId = mapaClientes[nome].id;
+                    saldoAtual = mapaClientes[nome].saldo;
+                } else {
+                    // Criar Novo
                     const docRef = await addDoc(collection(db, "clientes"), { 
                         nome: nome, 
                         setor: setor.toString().toUpperCase(), 
@@ -325,34 +333,45 @@
                         dia_pagamento: dia.toString(), 
                         saldo: 0 
                     });
-                    
-                    // Se tiver dívida, lança a venda inicial
-                    if(valorDevido > 0) {
-                        await updateDoc(docRef, { saldo: -valorDevido, ultima_venda: new Date().toISOString().split('T')[0] });
-                        await addDoc(collection(db, "transacoes"), {
-                            cliente_id: docRef.id,
-                            tipo: 'VENDA',
-                            metodo: 'FIADO',
-                            valor: valorDevido,
-                            descricao: 'Saldo Importado Excel',
-                            data: new Date().toISOString().split('T')[0],
-                            timestamp: new Date()
-                        });
-                    }
+                    clienteId = docRef.id;
+                    saldoAtual = 0;
+                    mapaClientes[nome] = { id: clienteId, saldo: 0 }; // Atualiza mapa local
                     countNovos++;
-                } else {
-                    // Cliente já existe (podemos atualizar o saldo se quiser, mas por segurança pulei)
-                    // console.log(`Cliente ${nome} já existe.`);
+                }
+
+                // 2. Lançar Dívida (Independente se é novo ou antigo)
+                if(valorDevido > 0) {
+                    // Atualiza Saldo
+                    const novoSaldo = saldoAtual - valorDevido;
+                    await updateDoc(doc(db, "clientes", clienteId), { 
+                        saldo: novoSaldo,
+                        ultima_venda: new Date().toISOString().split('T')[0] 
+                    });
+                    
+                    // Registra Transação
+                    await addDoc(collection(db, "transacoes"), {
+                        cliente_id: clienteId,
+                        tipo: 'VENDA',
+                        metodo: 'FIADO',
+                        valor: valorDevido,
+                        descricao: 'Saldo Importado Excel',
+                        data: new Date().toISOString().split('T')[0],
+                        timestamp: new Date()
+                    });
+                    
+                    // Atualiza mapa local para evitar erros se tiver 2 linhas do mesmo cliente
+                    mapaClientes[nome].saldo = novoSaldo;
+                    countDividas++;
                 }
             }
-            alert(`Sucesso!\nNovos clientes: ${countNovos}`);
+            alert(`Processado!\nNovos Clientes: ${countNovos}\nDívidas Lançadas: ${countDividas}`);
             statusDiv.innerText = "";
             fileInput.value = "";
             carregarClientes();
 
         } catch (error) {
             console.error(error);
-            alert("Erro ao ler planilha. Verifique o formato.");
+            alert("Erro ao ler planilha. Verifique o console.");
             statusDiv.innerText = "Erro.";
         }
     };
