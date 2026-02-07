@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V25.0 Smart Import</title>
+    <title>Gaby Doces - V25.1 Import Fix</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
@@ -27,7 +27,7 @@
 
 <div class="container mt-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-success small">V25.0 Smart</span></h5>
+        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-danger small">V25.1 Fix</span></h5>
         <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
     </div>
 
@@ -91,19 +91,15 @@
     <div class="tab-pane fade" id="tab-config">
         
         <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-warning">
-            <h6 class="fw-bold text-warning">📤 Importar Planilha de Pedidos</h6>
+            <h6 class="fw-bold text-warning">📤 Importar Pedidos (Layout V25.1)</h6>
             <div class="alert alert-light border small text-muted">
-                <strong>Ordem das colunas:</strong><br>
-                A: Setor | B: Nome do Cliente<br>
-                C: Produto 1 | D: Qtd 1<br>
-                E: Produto 2 | F: Qtd 2<br>
-                G: Produto 3 | H: Qtd 3<br>
-                I: Produto 4 | J: Qtd 4<br>
-                K: Produto 5 | L: Qtd 5<br>
-                M: Telefone (no final)
+                <strong>Colunas:</strong><br>
+                A: Setor | <strong>B: Nome (Obrigatório)</strong><br>
+                C até O: Pares de Produto e Quantidade.<br>
+                <strong>P: Telefone</strong>
             </div>
-            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls, .xlsb">
-            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER E PROCESSAR PEDIDOS</button>
+            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls">
+            <button class="btn btn-warning w-100 fw-bold text-dark" id="btnImportar" onclick="importarExcel()">LER PLANILHA E CADASTRAR</button>
             <div id="statusImport" class="small mt-2 text-center text-dark fw-bold"></div>
         </div>
 
@@ -267,7 +263,7 @@
       window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
-  // --- EXPORTAR E IMPORTAR (LÓGICA NOVA) ---
+  // --- EXPORTAR E IMPORTAR (LÓGICA CORRIGIDA) ---
   window.exportarExcelRelatorio = async () => {
       const snapCli = await getDocs(collection(db, "clientes"));
       let dados = [];
@@ -296,7 +292,6 @@
     const snapProds = await getDocs(collection(db, "produtos"));
     const mapaPrecos = {};
     snapProds.forEach(d => {
-        // Normaliza para maiúsculo e sem espaços
         mapaPrecos[d.data().nome.toUpperCase().trim()] = d.data().preco;
     });
 
@@ -308,7 +303,7 @@
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            // Ler como Matriz de Arrays (header: 1) para pegar por posição (Col A=0, B=1, etc)
+            // Ler como Matriz (A=0, B=1...)
             const json = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
 
             statusDiv.innerText = `Processando ${json.length} linhas...`;
@@ -321,61 +316,61 @@
             });
 
             let countVendas = 0;
+            let countNovos = 0;
 
-            // Começa do index 1 para pular cabeçalho (se houver)
+            // Começa do index 1 para pular cabeçalho
             for(let i = 1; i < json.length; i++) {
                 let row = json[i];
-                if(!row || row.length < 2) continue; // Linha vazia
+                if(!row || row.length < 2) continue;
 
-                // Mapeamento das Colunas
+                // Colunas Fixas
                 let setor = (row[0] || "RUA").toString().toUpperCase();
                 let nome = (row[1] || "").toString().toUpperCase().trim();
-                let telefone = (row[12] || "").toString(); // Coluna M = index 12
+                let telefone = (row[15] || "").toString(); // Coluna P (Index 15)
 
-                if(!nome) continue;
+                if(!nome) continue; // Sem nome, pula
 
-                // Montar lista de produtos dessa linha
+                // Lógica de Produtos: Varrer da Coluna C (2) até O (14)
                 let itensVenda = [];
                 let valorTotalLinha = 0;
 
-                // Pares de Produto (Col) e Qtd (Col+1)
-                // C(2)+D(3), E(4)+F(5), G(6)+H(7), I(8)+J(9), K(10)+L(11)
-                const indicesProdutos = [2, 4, 6, 8, 10];
-                
-                for(let colProd of indicesProdutos) {
-                    let nomeProd = (row[colProd] || "").toString().toUpperCase().trim();
-                    let qtd = parseFloat(row[colProd + 1]);
+                // Loop: 2, 4, 6, 8, 10, 12, 14 (Colunas de Nomes de Produtos)
+                for(let k = 2; k <= 14; k += 2) {
+                    let nomeProd = (row[k] || "").toString().toUpperCase().trim();
+                    let qtd = parseFloat(row[k+1]); // Coluna seguinte é quantidade
 
                     if(nomeProd && qtd > 0) {
-                        let precoUnit = mapaPrecos[nomeProd] || 0;
+                        let precoUnit = mapaPrecos[nomeProd] || 0; // Se não achar, R$ 0,00
                         let totalItem = precoUnit * qtd;
                         valorTotalLinha += totalItem;
                         itensVenda.push(`${qtd}x ${nomeProd}`);
                     }
                 }
 
+                // --- CADASTRO/ATUALIZAÇÃO ---
+                let clienteId = null;
+                let saldoAtual = 0;
+
+                if(mapaClientes[nome]) {
+                    // Já existe
+                    clienteId = mapaClientes[nome].id;
+                    saldoAtual = mapaClientes[nome].saldo;
+                } else {
+                    // Cadastrar Novo (AGORA OBRIGATÓRIO SE NÃO EXISTIR)
+                    const docRef = await addDoc(collection(db, "clientes"), { 
+                        nome: nome, 
+                        setor: setor, 
+                        telefone: telefone, 
+                        dia_pagamento: "", 
+                        saldo: 0 
+                    });
+                    clienteId = docRef.id;
+                    mapaClientes[nome] = { id: clienteId, saldo: 0 };
+                    countNovos++;
+                }
+
+                // Se houver compras na linha, lança a dívida
                 if(valorTotalLinha > 0) {
-                    let clienteId = null;
-                    let saldoAtual = 0;
-
-                    // Verifica Cliente
-                    if(mapaClientes[nome]) {
-                        clienteId = mapaClientes[nome].id;
-                        saldoAtual = mapaClientes[nome].saldo;
-                    } else {
-                        // Cria Novo Cliente
-                        const docRef = await addDoc(collection(db, "clientes"), { 
-                            nome: nome, 
-                            setor: setor, 
-                            telefone: telefone, 
-                            dia_pagamento: "", 
-                            saldo: 0 
-                        });
-                        clienteId = docRef.id;
-                        mapaClientes[nome] = { id: clienteId, saldo: 0 };
-                    }
-
-                    // Lança a Venda/Dívida
                     const novoSaldo = saldoAtual - valorTotalLinha;
                     await updateDoc(doc(db, "clientes", clienteId), { 
                         saldo: novoSaldo,
@@ -391,20 +386,19 @@
                         data: new Date().toISOString().split('T')[0],
                         timestamp: new Date()
                     });
-
-                    // Atualiza mapa local
+                    // Atualiza saldo no mapa local para próxima iteração se houver duplicidade
                     mapaClientes[nome].saldo = novoSaldo;
                     countVendas++;
                 }
             }
-            alert(`Processado!\nVendas Lançadas: ${countVendas}`);
+            alert(`Concluído!\nNovos Clientes: ${countNovos}\nVendas Lançadas: ${countVendas}`);
             statusDiv.innerText = "";
             fileInput.value = "";
             carregarClientes();
 
         } catch (error) {
             console.error(error);
-            alert("Erro ao ler planilha. Verifique se as colunas estão certas (A=Setor, B=Nome, C=Prod, D=Qtd...)");
+            alert("Erro! Verifique se a planilha tem cabeçalho na linha 1 e dados a partir da 2.");
             statusDiv.innerText = "Erro.";
         }
     };
