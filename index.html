@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces V31 (Atualizado)</title>
+    <title>Gaby Doces V32 (Calculadora + Efeitos)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,16 +11,18 @@
             theme: {
                 extend: {
                     colors: {
-                        // Mudei para Roxo/Rosa para diferenciar da versão antiga
+                        // Mantive o Roxo/Rosa da V31
                         brand: { 50: '#fdf4ff', 100: '#fae8ff', 500: '#d946ef', 600: '#c026d3', 900: '#701a75' }
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
-                        'slide-up': 'slideUp 0.4s ease-out'
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'bounce-short': 'bounceShort 0.5s ease-in-out 1'
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        bounceShort: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } }
                     }
                 }
             }
@@ -29,6 +31,7 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -36,6 +39,8 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #fdf4ff; }
         .hide { display: none !important; }
+        /* Ajuste para listas não cortarem no final */
+        .safe-scroll { padding-bottom: 120px; } 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c026d3; border-radius: 10px; }
@@ -48,7 +53,7 @@
             <h1 class="text-3xl font-bold text-brand-600 flex items-center gap-2">
                 <i class="fa-solid fa-candy-cane"></i> Gaby<span class="text-slate-700">Doces</span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V31</p>
+            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V32</p>
         </div>
         <nav class="flex-1 px-4 space-y-3">
             <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium bg-brand-50 text-brand-600" id="btn-clientes">
@@ -61,7 +66,7 @@
                 <i class="fa-solid fa-user-plus"></i> Novo
             </button>
             <button onclick="mudarAba('prod')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-prod">
-                <i class="fa-solid fa-box-open"></i> Estoque
+                <i class="fa-solid fa-calculator"></i> Estoque/Preço
             </button>
             <button onclick="mudarAba('config')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-config">
                 <i class="fa-solid fa-gear"></i> Config
@@ -78,7 +83,7 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 relative scroll-smooth">
             
-            <section id="tab-clientes" class="animate-fade-in space-y-6">
+            <section id="tab-clientes" class="animate-fade-in space-y-6 safe-scroll">
                 <div class="flex flex-col md:flex-row gap-4 bg-white p-2 rounded-3xl shadow-sm border border-brand-100">
                     <div class="flex-1 relative">
                         <i class="fa-solid fa-magnifying-glass absolute left-5 top-4 text-slate-300"></i>
@@ -91,12 +96,12 @@
                     </select>
                 </div>
 
-                <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-10">
+                <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                     <div class="col-span-3 text-center text-slate-400 py-10">Carregando sistema...</div>
                 </div>
             </section>
 
-            <section id="tab-cobranca" class="hide animate-fade-in space-y-8">
+            <section id="tab-cobranca" class="hide animate-fade-in space-y-8 safe-scroll">
                 <h2 class="text-3xl font-bold text-slate-800 tracking-tight">Painel Financeiro</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div onclick="renderCobranca('hoje')" class="cursor-pointer bg-white p-6 rounded-3xl shadow-sm border-b-4 border-blue-400 hover:-translate-y-1 transition-all">
@@ -112,7 +117,7 @@
                         <div class="text-3xl font-black text-slate-800" id="total-atrasados">R$ 0,00</div>
                     </div>
                 </div>
-                <div id="listaCobranca" class="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden"></div>
+                <div id="listaCobranca" class="bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden pb-10"></div>
             </section>
 
             <section id="tab-novo" class="hide animate-slide-up">
@@ -137,9 +142,20 @@
                 </div>
             </section>
 
-            <section id="tab-prod" class="hide animate-fade-in">
+            <section id="tab-prod" class="hide animate-fade-in safe-scroll">
                 <div class="max-w-3xl mx-auto space-y-6">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-100 flex gap-4 items-center">
+                    
+                    <div class="bg-gradient-to-r from-purple-500 to-brand-500 p-6 rounded-3xl shadow-lg text-white flex justify-between items-center cursor-pointer hover:scale-[1.02] transition-transform" onclick="abrirCalculadora()">
+                        <div>
+                            <h3 class="font-bold text-xl"><i class="fa-solid fa-calculator"></i> Calculadora de Preço</h3>
+                            <p class="text-white/80 text-sm">Calcule Gás, Ingredientes e Lucro</p>
+                        </div>
+                        <div class="bg-white/20 p-3 rounded-full">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-brand-100 flex gap-4 items-center mt-6">
                         <input type="text" id="prodNome" class="flex-1 p-3 bg-slate-50 rounded-xl outline-none" placeholder="Nome do Produto">
                         <input type="number" id="prodPreco" class="w-28 p-3 bg-slate-50 rounded-xl outline-none" placeholder="Preço">
                         <button onclick="addProduto()" class="bg-brand-500 text-white h-12 w-12 rounded-xl hover:bg-brand-600 transition shadow-lg flex items-center justify-center"><i class="fa-solid fa-plus"></i></button>
@@ -174,6 +190,78 @@
             </section>
         </div>
     </main>
+
+    <div id="modalCalc" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-xl text-brand-700"><i class="fa-solid fa-calculator"></i> Precificação Inteligente</h3>
+                <button onclick="fecharModal('modalCalc')" class="text-slate-400 hover:text-red-500 text-xl">✕</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <h4 class="font-bold text-sm text-slate-500 mb-3 uppercase">1. Custos da Receita</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs">Ingredientes (R$)</label>
+                            <input type="number" id="calc-ingredientes" class="w-full p-2 border rounded-lg" placeholder="Ex: 300,00">
+                        </div>
+                        <div>
+                            <label class="text-xs">Rendimento (Unidades)</label>
+                            <input type="number" id="calc-rendimento" class="w-full p-2 border rounded-lg" placeholder="Ex: 300">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                    <h4 class="font-bold text-sm text-orange-600 mb-3 uppercase">2. Custo do Gás</h4>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-xs">Preço Botijão</label>
+                            <input type="number" id="calc-gas-preco" class="w-full p-2 border rounded-lg bg-white" value="130">
+                        </div>
+                        <div>
+                            <label class="text-xs">Duração (Horas)</label>
+                            <input type="number" id="calc-gas-total-horas" class="w-full p-2 border rounded-lg bg-white" value="200" title="Média de horas que dura um botijão">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold">Tempo Gasto</label>
+                            <input type="number" id="calc-gas-uso" class="w-full p-2 border border-orange-300 rounded-lg bg-white font-bold" placeholder="Horas">
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-orange-400 mt-1">*Média industrial: 200h. Fogão comum: 250h.</p>
+                </div>
+
+                <div class="p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <h4 class="font-bold text-sm text-purple-600 mb-3 uppercase">3. Venda</h4>
+                    <div>
+                        <label class="text-xs">Por quanto quer vender cada unidade? (R$)</label>
+                        <input type="number" id="calc-venda" class="w-full p-3 border border-purple-300 rounded-lg font-bold text-lg text-purple-700" placeholder="Ex: 7,00">
+                    </div>
+                </div>
+
+                <button onclick="calcularPrecificacao()" class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-brand-700">CALCULAR LUCRO</button>
+
+                <div id="calc-resultado" class="hidden animate-fade-in">
+                    <div class="mt-4 border-t pt-4">
+                        <div class="flex justify-between text-sm">
+                            <span>Custo Unitário (Ingrediente + Gás):</span>
+                            <span class="font-bold" id="res-custo-un">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between text-sm mt-1">
+                            <span>Custo do Gás nesta receita:</span>
+                            <span class="font-bold text-orange-500" id="res-gas-total">R$ 0,00</span>
+                        </div>
+                        <div class="mt-4 p-4 rounded-xl text-center" id="res-box-lucro">
+                            <p class="text-sm uppercase font-bold opacity-70">Seu Lucro por Unidade</p>
+                            <p class="text-3xl font-black" id="res-lucro">R$ 0,00</p>
+                            <p class="text-xs mt-1" id="res-msg">Vale a pena!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="modalVenda" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-slide-up">
@@ -358,6 +446,67 @@
             renderClientes();
             renderProdutos();
         }
+
+        // --- CALCULAR PRECIFICAÇÃO (NOVO) ---
+        window.abrirCalculadora = () => document.getElementById('modalCalc').classList.remove('hidden');
+
+        window.calcularPrecificacao = () => {
+            // Pegar valores
+            const custoIngredientes = parseFloat(document.getElementById('calc-ingredientes').value) || 0;
+            const rendimento = parseFloat(document.getElementById('calc-rendimento').value) || 1;
+            const precoBotijao = parseFloat(document.getElementById('calc-gas-preco').value) || 130;
+            const duracaoBotijao = parseFloat(document.getElementById('calc-gas-total-horas').value) || 200;
+            const usoGasHoras = parseFloat(document.getElementById('calc-gas-uso').value) || 0;
+            const precoVenda = parseFloat(document.getElementById('calc-venda').value) || 0;
+
+            // 1. Custo do Gás da Receita
+            // (Preço Botijão / Horas Totais) * Horas Usadas
+            const custoGasReceita = (precoBotijao / duracaoBotijao) * usoGasHoras;
+
+            // 2. Custo Total Receita
+            const custoTotal = custoIngredientes + custoGasReceita;
+
+            // 3. Custo Unitário
+            const custoUnitario = custoTotal / rendimento;
+
+            // 4. Lucro
+            const lucro = precoVenda - custoUnitario;
+
+            // Exibir
+            document.getElementById('calc-resultado').classList.remove('hidden');
+            document.getElementById('res-custo-un').innerText = `R$ ${custoUnitario.toFixed(2)}`;
+            document.getElementById('res-gas-total').innerText = `R$ ${custoGasReceita.toFixed(2)}`;
+            document.getElementById('res-lucro').innerText = `R$ ${lucro.toFixed(2)}`;
+
+            const boxLucro = document.getElementById('res-box-lucro');
+            const msg = document.getElementById('res-msg');
+
+            if(lucro > 0) {
+                boxLucro.className = "mt-4 p-4 rounded-xl text-center bg-green-100 text-green-700 animate-bounce-short";
+                msg.innerText = `Você ganha R$ ${(lucro * rendimento).toFixed(2)} vendendo tudo!`;
+            } else {
+                boxLucro.className = "mt-4 p-4 rounded-xl text-center bg-red-100 text-red-700 animate-bounce-short";
+                msg.innerText = "Cuidado! Você está tendo prejuízo.";
+            }
+        };
+
+        // --- EFEITOS ESPECIAIS (CONFETE) ---
+        function dispararConfete() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+
+            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+        }
+
 
         // --- RENDERIZADORES ---
         window.renderClientes = () => {
@@ -575,7 +724,9 @@
                 timestamp: new Date()
             });
 
-            fecharModal('modalVenda'); carregarDados(); mostrarToast("Venda OK!");
+            fecharModal('modalVenda'); carregarDados(); 
+            mostrarToast("Venda OK!");
+            dispararConfete(); // EFEITO
         };
 
         // PAGAMENTO
@@ -604,10 +755,12 @@
                 timestamp: new Date()
             });
 
-            fecharModal('modalPgto'); carregarDados(); mostrarToast("Recebido!");
+            fecharModal('modalPgto'); carregarDados(); 
+            mostrarToast("Recebido!");
+            dispararConfete(); // EFEITO
         };
 
-        // EXTRATO (CORRIGIDO PARA V30 - EVITA ERRO DE INDEX)
+        // EXTRATO
         window.verExtrato = async (id) => {
             const cli = CLIENTES.find(c => c.id === id);
             document.getElementById('ex-nome').innerText = cli.nome;
@@ -616,17 +769,13 @@
             tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Carregando...</td></tr>';
             document.getElementById('modalExtrato').classList.remove('hidden');
 
-            // 1. BUSCA SEM ORDERBY (Para não travar)
             const snap = await db.collection("transacoes").where("cliente_id", "==", id).get();
-            
-            // 2. ORDENA NO COMPUTADOR
             let listaTransacoes = [];
             snap.forEach(doc => listaTransacoes.push(doc.data()));
-            
             listaTransacoes.sort((a,b) => {
                 const da = new Date(a.data + 'T12:00:00');
                 const db = new Date(b.data + 'T12:00:00');
-                return db - da; // Mais recente primeiro
+                return db - da; 
             });
 
             tbody.innerHTML = '';
