@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces V28</title>
+    <title>Gaby Doces V29 (Final)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,42 +25,45 @@
             }
         }
     </script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #fff1f2; }
         .hide { display: none !important; }
-        /* Scrollbar bonita */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ec4899; border-radius: 10px; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex overflow-hidden selection:bg-brand-100 selection:text-brand-900">
+<body class="text-slate-800 h-screen flex overflow-hidden">
 
     <aside class="w-64 bg-white border-r border-pink-100 hidden md:flex flex-col shadow-xl z-20">
         <div class="p-8">
             <h1 class="text-3xl font-bold text-brand-600 flex items-center gap-2">
                 <i class="fa-solid fa-lollipop"></i> Gaby<span class="text-slate-700">Doces</span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V28</p>
+            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V29</p>
         </div>
         <nav class="flex-1 px-4 space-y-3">
-            <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-clientes">
-                <i class="fa-solid fa-users group-hover:scale-110 transition-transform"></i> Clientes
+            <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium bg-brand-50 text-brand-600" id="btn-clientes">
+                <i class="fa-solid fa-users"></i> Clientes
             </button>
             <button onclick="mudarAba('cobranca')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-cobranca">
-                <i class="fa-solid fa-hand-holding-dollar group-hover:scale-110 transition-transform"></i> Cobrança
+                <i class="fa-solid fa-hand-holding-dollar"></i> Cobrança
             </button>
             <button onclick="mudarAba('novo')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-novo">
-                <i class="fa-solid fa-user-plus group-hover:scale-110 transition-transform"></i> Novo
+                <i class="fa-solid fa-user-plus"></i> Novo
             </button>
             <button onclick="mudarAba('prod')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-prod">
-                <i class="fa-solid fa-box-open group-hover:scale-110 transition-transform"></i> Estoque
+                <i class="fa-solid fa-box-open"></i> Estoque
             </button>
             <button onclick="mudarAba('config')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium" id="btn-config">
-                <i class="fa-solid fa-gear group-hover:scale-110 transition-transform"></i> Config
+                <i class="fa-solid fa-gear"></i> Config
             </button>
         </nav>
     </aside>
@@ -87,7 +90,9 @@
                     </select>
                 </div>
 
-                <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-10"></div>
+                <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-10">
+                    <div class="col-span-3 text-center text-slate-400 py-10">Carregando sistema...</div>
+                </div>
             </section>
 
             <section id="tab-cobranca" class="hide animate-fade-in space-y-8">
@@ -292,11 +297,8 @@
         <i class="fa-solid fa-check-circle text-green-400"></i> <span id="toast-msg">Sucesso!</span>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, getDoc, setDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // --- SUAS CHAVES (Não Apague) ---
+    <script>
+        // CONFIG DO FIREBASE (Sua Chave)
         const firebaseConfig = {
             apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
             authDomain: "gabydoces-d0cd1.firebaseapp.com",
@@ -306,10 +308,11 @@
             appId: "1:702910388683:web:28facd97365fb586373e4e"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // INICIALIZAR FIREBASE (Modo Compat)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // --- ESTADOS GLOBAIS ---
+        // ESTADOS GLOBAIS
         let CLIENTES = [];
         let PRODUTOS = [];
         let CARRINHO = [];
@@ -318,12 +321,12 @@
 
         // --- INICIALIZAÇÃO ---
         window.onload = async () => {
-            // Preenche selects de dias
+            // Selects Dias
             const diasHtml = '<option value="">Sem dia fixo</option>' + [...Array(31)].map((_, i) => `<option value="${i+1}">Dia ${i+1}</option>`).join('');
             document.getElementById('novoDia').innerHTML = diasHtml;
             document.getElementById('ed-dia').innerHTML = diasHtml;
 
-            // Preenche select de setores na edição
+            // Selects Setores
             const setoresHtml = document.getElementById('novoSetor').innerHTML;
             document.getElementById('ed-setor').innerHTML = setoresHtml;
 
@@ -332,20 +335,20 @@
 
         async function carregarDados() {
             // Clientes
-            const snapC = await getDocs(collection(db, "clientes"));
+            const snapC = await db.collection("clientes").get();
             CLIENTES = [];
             snapC.forEach(d => CLIENTES.push({id: d.id, ...d.data()}));
             CLIENTES.sort((a,b) => a.nome.localeCompare(b.nome));
 
             // Produtos
-            const snapP = await getDocs(collection(db, "produtos"));
+            const snapP = await db.collection("produtos").get();
             PRODUTOS = [];
             snapP.forEach(d => PRODUTOS.push({id: d.id, ...d.data()}));
 
             // Config
             try {
-                const snapCfg = await getDoc(doc(db, "config", "templates"));
-                if(snapCfg.exists()) CONFIG = snapCfg.data();
+                const snapCfg = await db.collection("config").doc("templates").get();
+                if(snapCfg.exists) CONFIG = snapCfg.data();
                 document.getElementById('cfgPix').value = CONFIG.pix || "";
                 document.getElementById('msgHoje').value = CONFIG.hoje || "";
                 document.getElementById('msgAtrasado').value = CONFIG.atrasado || "";
@@ -375,11 +378,10 @@
 
             filtrados.forEach(c => {
                 const saldo = c.saldo || 0;
-                const devendo = saldo < -0.05; // Margem de erro pequena
+                const devendo = saldo < -0.05;
                 const venc = calcularVencimento(c.dia_pagamento, c.ultima_venda);
                 const dataVenc = venc ? venc.toLocaleDateString('pt-BR') : '---';
                 
-                // Cartão do Cliente
                 grid.innerHTML += `
                 <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 hover:shadow-md transition-all relative group">
                     <button onclick="abrirEditar('${c.id}')" class="absolute top-4 right-4 text-slate-300 hover:text-orange-400 transition-colors p-2"><i class="fa-solid fa-pen"></i></button>
@@ -414,76 +416,120 @@
             });
         };
 
+        window.renderCobranca = (tipo) => {
+            const lista = document.getElementById('listaCobranca');
+            lista.innerHTML = '';
+            let total = 0;
+
+            const filtrados = CLIENTES.filter(c => {
+                if(c.saldo >= -0.01 || !c.dia_pagamento) return false;
+                const status = obterStatusVenc(c.dia_pagamento, c.ultima_venda);
+                return status === tipo;
+            });
+
+            if(filtrados.length === 0) lista.innerHTML = `<div class="p-8 text-center text-slate-400">Ninguém nesta lista! 🎉</div>`;
+
+            filtrados.forEach(c => {
+                total += Math.abs(c.saldo);
+                const venc = calcularVencimento(c.dia_pagamento, c.ultima_venda).toLocaleDateString('pt-BR');
+                const zapLink = gerarLinkZap(c, tipo, venc);
+
+                lista.innerHTML += `
+                <div class="p-4 flex justify-between items-center hover:bg-slate-50 border-b border-slate-100 last:border-0">
+                    <div>
+                        <div class="font-bold text-slate-700">${c.nome}</div>
+                        <div class="text-xs text-slate-400">Venc: ${venc}</div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="font-bold text-red-600">R$ ${Math.abs(c.saldo).toFixed(2)}</div>
+                        <a href="${zapLink}" target="_blank" class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 shadow-md shadow-green-200"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById(`total-${tipo}`).innerText = `R$ ${total.toFixed(2)}`;
+        };
+
         window.renderProdutos = () => {
             const lista = document.getElementById('listaProdutos');
             const select = document.getElementById('mv-prod');
             lista.innerHTML = ''; select.innerHTML = '<option value="">Selecione...</option>';
 
             PRODUTOS.forEach(p => {
-                // Lista na aba estoque
                 lista.innerHTML += `
                 <div class="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl">
                     <span class="font-medium text-slate-700">${p.nome}</span>
                     <span class="font-bold text-brand-600 bg-brand-50 px-3 py-1 rounded-lg">R$ ${p.preco.toFixed(2)}</span>
                 </div>`;
-                
-                // Select no modal
                 select.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`;
             });
         };
 
-        // --- FUNÇÕES DE DATA E CÁLCULO ---
+        // --- LÓGICA DE NEGÓCIO ---
         function calcularVencimento(diaPag, ultimaVenda) {
             if(!diaPag) return null;
-            let d = ultimaVenda ? new Date(ultimaVenda + 'T12:00:00') : new Date(); // T12 evita fuso
+            let d = ultimaVenda ? new Date(ultimaVenda + 'T12:00:00') : new Date();
             let dia = parseInt(diaPag);
             let ano = d.getFullYear(), mes = d.getMonth();
-            
-            // Se comprou depois do dia de fechamento, joga pro proximo mes
             if(d.getDate() > dia) mes++;
-            
             if(mes > 11) { mes = 0; ano++; }
-            
-            // Pega o ultimo dia do mes se o dia de pagamento for maior que os dias do mes (ex: dia 31 em fevereiro)
-            const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
-            return new Date(ano, mes, Math.min(dia, ultimoDiaMes));
+            const ultimo = new Date(ano, mes + 1, 0).getDate();
+            return new Date(ano, mes, Math.min(dia, ultimo));
         }
 
-        // --- AÇÕES DO SISTEMA ---
+        function obterStatusVenc(dia, ultVenda) {
+            const v = calcularVencimento(dia, ultVenda); if(!v) return 'nada';
+            v.setHours(0,0,0,0);
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+            if(v.getTime() === hoje.getTime()) return 'hoje';
+            if(v.getTime() < hoje.getTime()) return 'atrasados';
+            return 'avencer';
+        }
 
-        // 1. EDICÃO DE CLIENTE
+        function gerarLinkZap(c, tipo, dataVenc) {
+            let msg = CONFIG[tipo] || "";
+            msg = msg.replace(/{nome}/g, c.nome)
+                     .replace(/{valor}/g, Math.abs(c.saldo).toFixed(2))
+                     .replace(/{vencimento}/g, dataVenc)
+                     .replace(/{pix}/g, CONFIG.pix);
+            return `https://wa.me/55${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+        }
+
+        // --- AÇÕES ---
+        window.mudarAba = (aba) => {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hide'));
+            document.getElementById(`tab-${aba}`).classList.remove('hide');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('bg-brand-50', 'text-brand-600'));
+            document.getElementById(`btn-${aba}`).classList.add('bg-brand-50', 'text-brand-600');
+            if(aba === 'cobranca') { renderCobranca('hoje'); renderCobranca('avencer'); renderCobranca('atrasados'); }
+        };
+
+        // EDITAR
         window.abrirEditar = (id) => {
             const c = CLIENTES.find(x => x.id === id);
             CLIENTE_ATUAL = c;
-            
             document.getElementById('ed-nome').value = c.nome;
             document.getElementById('ed-tel').value = c.telefone;
             document.getElementById('ed-setor').value = c.setor;
             document.getElementById('ed-dia').value = c.dia_pagamento;
-            
             document.getElementById('modalEditar').classList.remove('hidden');
         };
 
         window.salvarEdicao = async () => {
-            const nome = document.getElementById('ed-nome').value.toUpperCase();
-            const setor = document.getElementById('ed-setor').value;
-            const tel = document.getElementById('ed-tel').value;
-            const dia = document.getElementById('ed-dia').value;
-
-            await updateDoc(doc(db, "clientes", CLIENTE_ATUAL.id), {
-                nome, setor, telefone: tel, dia_pagamento: dia
+            await db.collection("clientes").doc(CLIENTE_ATUAL.id).update({
+                nome: document.getElementById('ed-nome').value.toUpperCase(),
+                setor: document.getElementById('ed-setor').value,
+                telefone: document.getElementById('ed-tel').value,
+                dia_pagamento: document.getElementById('ed-dia').value
             });
-
-            fecharModal('modalEditar');
-            carregarDados();
-            mostrarToast("Dados atualizados!");
+            fecharModal('modalEditar'); carregarDados(); mostrarToast("Atualizado!");
         };
 
-        // 2. VENDAS (Com Data)
+        // VENDA
         window.abrirVenda = (id) => {
             CLIENTE_ATUAL = CLIENTES.find(c => c.id === id);
             document.getElementById('mv-nome').innerText = CLIENTE_ATUAL.nome;
-            document.getElementById('mv-data').valueAsDate = new Date(); // Data hoje padrão
+            document.getElementById('mv-data').valueAsDate = new Date();
             CARRINHO = []; atualizarCarrinho();
             document.getElementById('modalVenda').classList.remove('hidden');
         };
@@ -493,60 +539,45 @@
             const nome = sel.options[sel.selectedIndex]?.getAttribute('data-nome');
             const preco = parseFloat(sel.value);
             const qtd = parseFloat(document.getElementById('mv-qtd').value);
-
-            if(!nome) return;
-
-            CARRINHO.push({ nome, qtd, total: preco * qtd });
-            atualizarCarrinho();
+            if(nome) { CARRINHO.push({nome, qtd, total: preco*qtd}); atualizarCarrinho(); }
         };
+
+        window.rmItem = (idx) => { CARRINHO.splice(idx,1); atualizarCarrinho(); };
 
         function atualizarCarrinho() {
             const div = document.getElementById('mv-lista');
             let total = 0; div.innerHTML = '';
-            
-            CARRINHO.forEach((item, idx) => {
-                total += item.total;
-                div.innerHTML += `
-                <div class="flex justify-between items-center text-sm p-2 bg-white rounded-lg border border-slate-100">
-                    <div><span class="font-bold text-slate-700">${item.qtd}x</span> ${item.nome}</div>
-                    <div class="font-bold text-slate-600">R$ ${item.total.toFixed(2)} <button onclick="rmItem(${idx})" class="ml-2 text-red-400 text-xs">x</button></div>
-                </div>`;
+            CARRINHO.forEach((i, idx) => {
+                total += i.total;
+                div.innerHTML += `<div class="flex justify-between items-center text-sm p-2 bg-white rounded-lg border border-slate-100 mb-1"><div><span class="font-bold">${i.qtd}x</span> ${i.nome}</div><div class="font-bold text-slate-600">R$ ${i.total.toFixed(2)} <button onclick="rmItem(${idx})" class="ml-2 text-red-400">x</button></div></div>`;
             });
-
-            if(CARRINHO.length === 0) div.innerHTML = '<div class="text-center text-xs text-slate-400 mt-10">Carrinho vazio</div>';
+            if(CARRINHO.length===0) div.innerHTML = '<div class="text-center text-xs text-slate-400 mt-10">Vazio</div>';
             document.getElementById('mv-total').innerText = `R$ ${total.toFixed(2)}`;
         }
-        window.rmItem = (idx) => { CARRINHO.splice(idx, 1); atualizarCarrinho(); };
 
         window.finalizarVenda = async () => {
             if(CARRINHO.length === 0) return;
             const dataVenda = document.getElementById('mv-data').value;
             const total = CARRINHO.reduce((acc, i) => acc + i.total, 0);
             
-            // Atualiza Saldo
-            const novoSaldo = (CLIENTE_ATUAL.saldo || 0) - total;
-            await updateDoc(doc(db, "clientes", CLIENTE_ATUAL.id), { 
-                saldo: novoSaldo, 
-                ultima_venda: dataVenda 
+            await db.collection("clientes").doc(CLIENTE_ATUAL.id).update({
+                saldo: (CLIENTE_ATUAL.saldo || 0) - total,
+                ultima_venda: dataVenda
             });
 
-            // Cria Transação
-            await addDoc(collection(db, "transacoes"), {
+            await db.collection("transacoes").add({
                 cliente_id: CLIENTE_ATUAL.id,
                 tipo: 'VENDA',
-                metodo: 'FIADO',
                 valor: total,
                 descricao: CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', '),
                 data: dataVenda,
                 timestamp: new Date()
             });
 
-            fecharModal('modalVenda');
-            carregarDados();
-            mostrarToast("Venda lançada!");
+            fecharModal('modalVenda'); carregarDados(); mostrarToast("Venda OK!");
         };
 
-        // 3. PAGAMENTOS (Com Data)
+        // PAGAMENTO
         window.abrirPagamento = (id) => {
             CLIENTE_ATUAL = CLIENTES.find(c => c.id === id);
             document.getElementById('mp-nome').innerText = CLIENTE_ATUAL.nome;
@@ -557,14 +588,14 @@
 
         window.confirmarPgto = async () => {
             const valor = parseFloat(document.getElementById('mp-valor').value);
-            const dataPgto = document.getElementById('mp-data').value;
-            
             if(!valor) return;
+            const dataPgto = document.getElementById('mp-data').value;
 
-            const novoSaldo = (CLIENTE_ATUAL.saldo || 0) + valor;
-            await updateDoc(doc(db, "clientes", CLIENTE_ATUAL.id), { saldo: novoSaldo });
-            
-            await addDoc(collection(db, "transacoes"), {
+            await db.collection("clientes").doc(CLIENTE_ATUAL.id).update({
+                saldo: (CLIENTE_ATUAL.saldo || 0) + valor
+            });
+
+            await db.collection("transacoes").add({
                 cliente_id: CLIENTE_ATUAL.id,
                 tipo: 'PAGAMENTO',
                 valor: valor,
@@ -572,101 +603,127 @@
                 timestamp: new Date()
             });
 
-            fecharModal('modalPgto');
-            carregarDados();
-            mostrarToast("Pagamento recebido!");
+            fecharModal('modalPgto'); carregarDados(); mostrarToast("Recebido!");
         };
 
-        // 4. EXTRATO (RELATÓRIO)
+        // EXTRATO
         window.verExtrato = async (id) => {
             const cli = CLIENTES.find(c => c.id === id);
             document.getElementById('ex-nome').innerText = cli.nome;
-            document.getElementById('ex-saldo-final').innerText = `R$ ${Math.abs(cli.saldo).toFixed(2)} ${cli.saldo < 0 ? '(Devedor)' : '(Crédito)'}`;
-            
+            document.getElementById('ex-saldo-final').innerText = `R$ ${Math.abs(cli.saldo).toFixed(2)}`;
             const tbody = document.getElementById('ex-lista');
             tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Carregando...</td></tr>';
-            
             document.getElementById('modalExtrato').classList.remove('hidden');
 
-            // Buscar transações
-            const q = query(collection(db, "transacoes"), where("cliente_id", "==", id), orderBy("data", "desc"));
-            const snapshot = await getDocs(q);
-            
+            const snap = await db.collection("transacoes").where("cliente_id", "==", id).orderBy("data", "desc").get();
             tbody.innerHTML = '';
-            
-            if(snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">Nenhuma movimentação</td></tr>';
-                return;
-            }
+            if(snap.empty) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Nada encontrado.</td></tr>'; return; }
 
-            snapshot.forEach(doc => {
+            snap.forEach(doc => {
                 const t = doc.data();
                 const isVenda = t.tipo === 'VENDA';
-                // Formatar data (YYYY-MM-DD -> DD/MM)
                 const dataFmt = t.data.split('-').reverse().slice(0,2).join('/');
-                
                 tbody.innerHTML += `
                 <tr class="hover:bg-slate-50 transition">
                     <td class="p-4 text-slate-500 font-medium">${dataFmt}</td>
-                    <td class="p-4">
-                        <span class="block font-bold text-slate-700">${isVenda ? 'Compra' : 'Pagamento'}</span>
-                        <span class="text-xs text-slate-400">${t.descricao || 'Pagamento em conta'}</span>
-                    </td>
-                    <td class="p-4 text-right font-bold ${isVenda ? 'text-red-500' : 'text-green-500'}">
-                        ${isVenda ? '-' : '+'} R$ ${t.valor.toFixed(2)}
-                    </td>
+                    <td class="p-4"><span class="block font-bold text-slate-700">${isVenda?'Compra':'Pagamento'}</span><span class="text-xs text-slate-400">${t.descricao||'Pagamento'}</span></td>
+                    <td class="p-4 text-right font-bold ${isVenda?'text-red-500':'text-green-500'}">${isVenda?'-':'+'} R$ ${t.valor.toFixed(2)}</td>
                 </tr>`;
             });
         };
 
-        // UTILITÁRIOS
+        // GERAIS
         window.fecharModal = (id) => document.getElementById(id).classList.add('hidden');
-        
-        window.mudarAba = (aba) => {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hide'));
-            document.getElementById(`tab-${aba}`).classList.remove('hide');
-            
-            // Atualiza botões
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('bg-brand-50', 'text-brand-600');
-            });
-            document.getElementById(`btn-${aba}`).classList.add('bg-brand-50', 'text-brand-600');
-        };
-
         window.mostrarToast = (msg) => {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
             t.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         };
-
-        // CADASTRO NOVO
+        
         window.salvarNovoCliente = async () => {
             const nome = document.getElementById('novoNome').value.toUpperCase();
-            if(!nome) return;
-            
-            await addDoc(collection(db, "clientes"), {
-                nome,
-                setor: document.getElementById('novoSetor').value,
-                telefone: document.getElementById('novoTel').value,
-                dia_pagamento: document.getElementById('novoDia').value,
-                saldo: 0
+            if(nome) {
+                await db.collection("clientes").add({
+                    nome, setor: document.getElementById('novoSetor').value,
+                    telefone: document.getElementById('novoTel').value,
+                    dia_pagamento: document.getElementById('novoDia').value,
+                    saldo: 0
+                });
+                document.getElementById('novoNome').value = '';
+                carregarDados(); mudarAba('clientes'); mostrarToast("Cadastrado!");
+            }
+        };
+
+        window.addProduto = async () => {
+            const nome = document.getElementById('prodNome').value.toUpperCase();
+            const preco = parseFloat(document.getElementById('prodPreco').value);
+            if(nome && preco) {
+                await db.collection("produtos").add({nome, preco});
+                document.getElementById('prodNome').value = '';
+                carregarDados(); mostrarToast("Produto Add!");
+            }
+        };
+
+        window.salvarConfig = async () => {
+            await db.collection("config").doc("templates").set({
+                pix: document.getElementById('cfgPix').value,
+                hoje: document.getElementById('msgHoje').value,
+                atrasado: document.getElementById('msgAtrasado').value
             });
-            
-            document.getElementById('novoNome').value = '';
-            carregarDados();
-            mudarAba('clientes');
-            mostrarToast("Cliente cadastrado com sucesso!");
+            mostrarToast("Config Salva!");
         };
-
-        // IMPORTAR EXCEL (Mantido igual)
+        
+        // Importar Excel (Mantido lógica)
         window.importarExcel = async () => {
-            // ... (Seu código de importação do Excel vai aqui - Simplificado para o exemplo)
-            // Se precisar da lógica completa do Excel de novo, me avise que eu recoloco.
-            // Por enquanto deixei o botão visual.
-            alert("A função de Excel precisa ser colada aqui se você usar muito. Quer que eu adicione?");
-        };
+            const file = document.getElementById('arquivoExcel').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const wb = XLSX.read(e.target.result, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
+                
+                // Mapeamento
+                const mapCli = {}; CLIENTES.forEach(c => mapCli[c.nome] = c);
+                const mapProd = {}; PRODUTOS.forEach(p => mapProd[p.nome] = p.preco);
+                let count = 0;
 
+                for(let i=1; i<json.length; i++) {
+                    const row = json[i];
+                    if(!row || !row[1]) continue;
+                    const nome = row[1].toString().toUpperCase().trim();
+                    const setor = (row[0]||"RUA").toString().toUpperCase();
+                    const tel = (row[14]||"").toString().replace(/\D/g, "");
+                    
+                    let itens = [], totalLinha = 0;
+                    for(let k=2; k<=12; k+=2) {
+                        const prod = (row[k]||"").toString().toUpperCase().trim();
+                        const qtd = parseFloat(row[k+1]);
+                        if(prod && qtd > 0) {
+                            const preco = mapProd[prod] || 0;
+                            totalLinha += preco * qtd;
+                            itens.push(`${qtd}x ${prod}`);
+                        }
+                    }
+
+                    if(itens.length > 0) {
+                        let id = null, saldo = 0;
+                        if(mapCli[nome]) { id = mapCli[nome].id; saldo = mapCli[nome].saldo; }
+                        else {
+                            const ref = await db.collection("clientes").add({nome, setor, telefone: tel, dia_pagamento: "", saldo: 0});
+                            id = ref.id;
+                        }
+                        await db.collection("clientes").doc(id).update({ saldo: saldo - totalLinha, ultima_venda: new Date().toISOString().split('T')[0] });
+                        await db.collection("transacoes").add({
+                            cliente_id: id, tipo: 'VENDA', metodo: 'FIADO', valor: totalLinha, descricao: itens.join(', '), data: new Date().toISOString().split('T')[0], timestamp: new Date()
+                        });
+                        count++;
+                    }
+                }
+                alert(`Importado! ${count} vendas.`); carregarDados();
+            };
+            reader.readAsArrayBuffer(file);
+        };
     </script>
 </body>
 </html>
