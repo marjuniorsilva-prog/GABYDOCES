@@ -3,514 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces - V26.0 Final Fix</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>Gaby Doces V27</title>
     
-    <style>
-        body { background-color: #f8f9fa; padding-bottom: 100px; font-family: sans-serif; }
-        .nav-pills .nav-link.active { background-color: #d63384; color: white; font-weight: bold; }
-        .nav-pills .nav-link { background: white; color: #666; margin: 0 2px; border: 1px solid #ddd; }
-        
-        .btn-sub-cobranca { border: 1px solid #ddd; background: white; color: #555; font-size: 0.8rem; padding: 10px 2px; flex: 1; }
-        .btn-sub-cobranca.active { background: #6c757d; color: white; }
-        
-        .card-cliente { border-left: 5px solid #ccc; background: white; border-radius: 8px; }
-        .status-devendo { border-left-color: #dc3545; background-color: #fff5f5; }
-        .status-ok { border-left-color: #198754; }
-        
-        .tag-helper { background: #eee; padding: 2px 5px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; }
-        .total-info { background: #343a40; color: white; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
-
-<div class="container mt-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold text-secondary m-0">🍬 Gaby Doces <span class="badge bg-primary small">V26.0</span></h5>
-        <button class="btn btn-sm btn-light border" onclick="location.reload()">🔄 F5</button>
-    </div>
-
-    <ul class="nav nav-pills nav-fill mb-4 shadow-sm" id="menuPrincipal" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-inicio">🏠 Clientes</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cobranca" onclick="abrirSubAba('hoje')">💰 Cobrança</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-novo">👤 Novo</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-prod">📦 Prod</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-config">⚙️ Config</button></li>
-    </ul>
-</div>
-
-<div class="tab-content container">
-
-    <div class="tab-pane fade show active" id="tab-inicio">
-        <div class="input-group mb-3">
-            <input type="text" id="buscaNome" class="form-control" placeholder="🔍 Buscar cliente..." onkeyup="carregarClientes()">
-            <select id="filtroSetor" class="form-select" style="max-width: 130px;" onchange="carregarClientes()">
-                <option value="">Setor</option>
-                <option value="IGREJA">Igreja</option><option value="ROLETE">Rolete</option><option value="TABATA">Tabata</option>
-                <option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua</option>
-            </select>
-        </div>
-        <div id="listaClientes" class="row pb-5"></div>
-    </div>
-
-    <div class="tab-pane fade" id="tab-cobranca">
-        <div class="btn-group w-100 mb-3 shadow-sm" role="group">
-            <button class="btn btn-sub-cobranca active" id="btn-sub-recebimentos" onclick="abrirSubAba('recebimentos')">Pagos</button>
-            <button class="btn btn-sub-cobranca" id="btn-sub-hoje" onclick="abrirSubAba('hoje')">Vence Hoje</button>
-            <button class="btn btn-sub-cobranca" id="btn-sub-avencer" onclick="abrirSubAba('avencer')">A Vencer</button>
-            <button class="btn btn-sub-cobranca" id="btn-sub-atrasados" onclick="abrirSubAba('atrasados')">Atrasados</button>
-        </div>
-        <div id="conteudoCobranca"></div>
-    </div>
-
-    <div class="tab-pane fade" id="tab-novo">
-        <div class="card p-3 shadow-sm border-0">
-            <h5 class="fw-bold">Cadastrar Novo Cliente</h5>
-            <input type="text" id="novoNome" class="form-control mb-2" placeholder="Nome Completo">
-            <select id="novoSetor" class="form-select mb-2">
-                <option value="IGREJA">Igreja</option><option value="ROLETE">Rolete</option><option value="TABATA">Tabata</option>
-                <option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua/Outros</option>
-            </select>
-            <input type="text" id="novoTel" class="form-control mb-2" placeholder="Telefone com DDD">
-            <label class="small fw-bold">Dia de Pagamento (Fixo mensal):</label>
-            <select id="novoDiaPag" class="form-select mb-3"></select>
-            <button class="btn btn-primary w-100 fw-bold" onclick="salvarNovoCliente()">💾 SALVAR CLIENTE</button>
-        </div>
-    </div>
-
-    <div class="tab-pane fade" id="tab-prod">
-        <div class="input-group mb-3 shadow-sm">
-            <input type="text" id="prodNome" class="form-control border-0" placeholder="Produto">
-            <input type="number" id="prodPreco" class="form-control border-0" placeholder="R$">
-            <button class="btn btn-success" onclick="addProduto()">Add</button>
-        </div>
-        <ul id="listaProdutos" class="list-group shadow-sm border-0"></ul>
-    </div>
-
-    <div class="tab-pane fade" id="tab-config">
-        
-        <div class="card p-3 shadow-sm border-0 mb-4 bg-white border-start border-4 border-success">
-            <h6 class="fw-bold text-success">📤 Importar Pedidos (Layout Foto)</h6>
-            <div class="alert alert-light border small text-muted">
-                <strong>O sistema lê assim:</strong><br>
-                A: Setor | <strong>B: Nome</strong><br>
-                C+D: Prod1/Qtd1 | E+F: Prod2/Qtd2<br>
-                G+H: Prod3/Qtd3 | I+J: Prod4/Qtd4<br>
-                K+L: Prod5/Qtd5 | M+N: Prod6/Qtd6<br>
-                <strong>O: Telefone</strong>
-            </div>
-            <input type="file" id="arquivoExcel" class="form-control mb-2" accept=".xlsx, .xls, .xlsb">
-            <button class="btn btn-success w-100 fw-bold" id="btnImportar" onclick="importarExcel()">LER PLANILHA E PROCESSAR</button>
-            <div id="statusImport" class="small mt-2 text-center text-dark fw-bold"></div>
-        </div>
-
-        <button class="btn btn-dark w-100 mb-4 fw-bold shadow-sm" onclick="exportarExcelRelatorio()">📥 BAIXAR RELATÓRIO COMPLETO (EXCEL)</button>
-        
-        <div class="card p-3 shadow-sm border-0">
-            <h6 class="fw-bold">Personalizar Mensagens</h6>
-            <div class="mb-2"><label class="small fw-bold">Chave PIX:</label><input type="text" id="cfgPix" class="form-control" onchange="salvarTemplates()"></div>
-            <div class="mb-2"><label class="small fw-bold">Vence Hoje:</label><textarea id="msgHoje" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-            <div class="mb-2"><label class="small fw-bold">Atrasados:</label><textarea id="msgAtrasado" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-            <div class="mb-2"><label class="small fw-bold">A Vencer:</label><textarea id="msgAvencer" class="form-control" rows="3" onchange="salvarTemplates()"></textarea></div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="modalExtrato" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header bg-light"><h5>📜 Histórico Detalhado</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-0"><table class="table table-striped mb-0 table-sm"><thead class="table-dark"><tr><th>Data</th><th>Descrição</th><th class="text-end">Valor</th><th>Ação</th></tr></thead><tbody id="tabelaExtrato"></tbody></table></div></div></div></div>
-<div class="modal fade" id="modalEditarCliente" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-warning"><h5>✏️ Editar Cliente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="editId"><input type="text" id="editNome" class="form-control mb-2"><select id="editSetor" class="form-select mb-2"><option value="IGREJA">Igreja</option><option value="ROLETE">Rolete</option><option value="TABATA">Tabata</option><option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua</option></select><input type="text" id="editTel" class="form-control mb-2"><label class="small fw-bold">Dia de Pagamento:</label><select id="editDiaPag" class="form-select mb-3"></select><button class="btn btn-dark w-100" onclick="salvarEdicaoCliente()">Salvar Alterações</button></div></div></div></div>
-
-<div class="modal fade" id="modalVenda" tabindex="-1" data-bs-backdrop="static"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-light"><h5>Venda: <span id="tituloVenda"></span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="idClienteVenda"><div id="areaVendaInputs"><div class="input-group mb-2"><select id="selectProdVenda" class="form-select"></select><input type="number" id="qtdProdVenda" class="form-control" value="1" style="max-width: 60px;"><button class="btn btn-primary" onclick="addCarrinho()">➕</button></div><ul class="list-group mb-2" id="listaCarrinho" style="max-height: 150px; overflow-y: auto;"></ul><h4 class="text-end fw-bold text-primary" id="totalCarrinho">R$ 0,00</h4><div class="d-flex gap-2 mb-3 mt-3"><input type="radio" class="btn-check" name="tipoVenda" id="optFiado" value="FIADO" checked><label class="btn btn-outline-danger w-50" for="optFiado">FIADO</label><input type="radio" class="btn-check" name="tipoVenda" id="optVista" value="VISTA"><label class="btn btn-outline-success w-50" for="optVista">À VISTA</label></div><input type="date" id="dataVenda" class="form-control mb-2"><button class="btn btn-dark w-100 py-2" onclick="finalizarVenda()">CONCLUIR</button></div></div></div></div></div>
-
-<div class="modal fade" id="modalPagamento" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header bg-success text-white"><h5>💰 Receber</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="idClientePgto"><input type="number" id="valorPgto" class="form-control fs-2 text-center mb-2"><input type="date" id="dataPgto" class="form-control mb-3"><button class="btn btn-success w-100" onclick="confirmarPagamento()">CONFIRMAR</button></div></div></div></div>
-<div class="modal fade" id="modalSenha" tabindex="-1" style="z-index: 1080;"><div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content border-danger"><div class="modal-body text-center"><strong>Senha Restrita:</strong><input type="password" id="inputSenha" class="form-control text-center my-2"><button class="btn btn-danger w-100" onclick="validarSenha()">OK</button></div></div></div></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, where, updateDoc, doc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
-    authDomain: "gabydoces-d0cd1.firebaseapp.com",
-    projectId: "gabydoces-d0cd1",
-    storageBucket: "gabydoces-d0cd1.firebasestorage.app",
-    messagingSenderId: "702910388683",
-    appId: "1:702910388683:web:28facd97365fb586373e4e"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  let CARRINHO = []; let TOTAL_CARRINHO = 0; let SENHA_CALLBACK = null; let TEMPLATES = {};
-
-  window.onload = async () => {
-      preencherDias();
-      await carregarTemplates();
-      carregarClientes();
-      carregarProdutos();
-      document.getElementById('dataVenda').valueAsDate = new Date();
-  };
-
-  function preencherDias() {
-      const sels = [document.getElementById('novoDiaPag'), document.getElementById('editDiaPag')];
-      sels.forEach(s => { for(let i=1; i<=31; i++) s.innerHTML += `<option value="${i}">Dia ${i}</option>`; });
-  }
-
-  function calcularVencimento(diaPag, ultimaVenda) {
-      if (!diaPag) return null;
-      let d = ultimaVenda ? new Date(ultimaVenda + 'T00:00:00') : new Date();
-      d.setHours(0,0,0,0);
-      let ano = d.getFullYear(); let mes = d.getMonth();
-      if (d.getDate() > diaPag) mes++;
-      if (mes > 11) { mes = 0; ano++; }
-      const ultimo = new Date(ano, mes + 1, 0).getDate();
-      return new Date(ano, mes, Math.min(diaPag, ultimo));
-  }
-
-  function obterEstadoVencimento(vencimento) {
-      if (!vencimento) return 'SEM_DATA';
-      const hoje = new Date(); hoje.setHours(0,0,0,0);
-      const v = new Date(vencimento); v.setHours(0,0,0,0);
-      if (v.getTime() === hoje.getTime()) return 'hoje';
-      if (v.getTime() < hoje.getTime()) return 'atrasados';
-      return 'avencer';
-  }
-
-  // --- CLIENTES ---
-  window.carregarClientes = async () => {
-      const lista = document.getElementById('listaClientes');
-      const busca = document.getElementById('buscaNome').value.toLowerCase();
-      const setor = document.getElementById('filtroSetor').value;
-      const snap = await getDocs(collection(db, "clientes"));
-      let clis = []; snap.forEach(d => clis.push({id: d.id, ...d.data()}));
-      clis.sort((a,b) => a.nome.localeCompare(b.nome));
-      lista.innerHTML = '';
-      clis.forEach(c => {
-          if (busca && !c.nome.toLowerCase().includes(busca)) return;
-          if (setor && c.setor !== setor) return;
-          const devedor = c.saldo < -0.01;
-          const venc = calcularVencimento(parseInt(c.dia_pagamento), c.ultima_venda);
-          lista.innerHTML += `
-            <div class="col-md-6 mb-2">
-                <div class="card p-2 card-cliente ${devedor?'status-devendo':'status-ok'} shadow-sm">
-                    <div class="d-flex justify-content-between">
-                        <h6 class="fw-bold m-0">${c.nome}</h6>
-                        <button class="btn btn-sm p-0 text-secondary" onclick="abrirEditarCliente('${c.id}')">✏️</button>
-                    </div>
-                    <small class="text-muted" style="font-size:0.7rem">${c.setor} | Venc: ${venc?venc.toLocaleDateString('pt-BR'):'--'}</small>
-                    <div class="fs-5 ${devedor?'text-danger fw-bold':'text-success'}">R$ ${Math.abs(c.saldo).toFixed(2)}</div>
-                    <div class="d-flex gap-1 mt-2">
-                        <button class="btn btn-outline-danger btn-sm w-100" onclick="abrirVenda('${c.id}', '${c.nome}', ${c.saldo})">Vender</button>
-                        <button class="btn btn-outline-success btn-sm w-100" onclick="abrirPagamento('${c.id}')">Receber</button>
-                    </div>
-                    <div class="text-end mt-1"><button class="btn btn-link btn-sm p-0 text-muted text-decoration-none" onclick="verExtrato('${c.id}')">📄 Detalhes</button></div>
-                </div>
-            </div>`;
-      });
-  };
-
-  // --- COBRANÇA ---
-  window.abrirSubAba = async (tipo) => {
-      document.querySelectorAll('.btn-sub-cobranca').forEach(b => b.classList.remove('active'));
-      document.getElementById(`btn-sub-${tipo}`).classList.add('active');
-      const area = document.getElementById('conteudoCobranca');
-      area.innerHTML = 'Carregando...';
-      const snapCli = await getDocs(collection(db, "clientes"));
-      let clientes = []; snapCli.forEach(d => clientes.push({id: d.id, ...d.data()}));
-      let html = "";
-      let somaTotal = 0;
-
-      if (tipo === 'recebimentos') {
-          const snapT = await getDocs(query(collection(db, "transacoes"), where("tipo", "==", "PAGAMENTO")));
-          let transList = "";
-          snapT.forEach(p => {
-              const d = p.data();
-              const cli = clientes.find(c => c.id === d.cliente_id)?.nome || "??";
-              somaTotal += d.valor;
-              transList += `<li class="list-group-item d-flex justify-content-between"><div>${cli}<br><small>${d.data.split('-').reverse().join('/')}</small></div><b>R$ ${d.valor.toFixed(2)}</b></li>`;
-          });
-          html = `<div class="total-info"><h6>Total Recebido (Pagos)</h6><h3>R$ ${somaTotal.toFixed(2)}</h3></div><ul class="list-group">${transList}</ul>`;
-      } else {
-          let cardsHtml = "";
-          for (let c of clientes) {
-              if (c.saldo < -0.01 && c.dia_pagamento) {
-                  const venc = calcularVencimento(parseInt(c.dia_pagamento), c.ultima_venda);
-                  if (obterEstadoVencimento(venc) === tipo) {
-                      somaTotal += Math.abs(c.saldo);
-                      cardsHtml += `
-                        <div class="card p-2 mb-2 border-0 shadow-sm d-flex flex-row justify-content-between align-items-center">
-                            <div><strong>${c.nome}</strong><br><small class="text-danger fw-bold">R$ ${Math.abs(c.saldo).toFixed(2)}</small><br><small class="text-muted" style="font-size:0.7rem">Venc: ${venc.toLocaleDateString('pt-BR')}</small></div>
-                            <button class="btn btn-success btn-sm" onclick="prepararZap('${c.id}', '${tipo}', '${venc.toLocaleDateString('pt-BR')}')"><i class="bi bi-whatsapp"></i></button>
-                        </div>`;
-                  }
-              }
-          }
-          let tituloPainel = (tipo === 'hoje') ? 'Total Vencendo Hoje' : (tipo === 'atrasados' ? 'Total em Atraso' : 'Total Previsto (A Vencer)');
-          html = `<div class="total-info"><h6>${tituloPainel}</h6><h3>R$ ${somaTotal.toFixed(2)}</h3></div>` + cardsHtml;
-      }
-      area.innerHTML = html || "<p class='text-center mt-4 text-muted'>Nenhum registro encontrado.</p>";
-  };
-
-  window.prepararZap = async (id, tipo, dataVenc) => {
-      const snap = await getDoc(doc(db, "clientes", id));
-      const c = snap.data();
-      const sT = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", id), where("tipo", "==", "VENDA")));
-      let prods = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') prods.push(t.data().descricao); });
-
-      let template = TEMPLATES[tipo === 'atrasados' ? 'atrasado' : (tipo === 'hoje' ? 'hoje' : 'avencer')];
-      let msg = template.replace(/{nome}/g, c.nome).replace(/{valor}/g, Math.abs(c.saldo).toFixed(2)).replace(/{vencimento}/g, dataVenc).replace(/{produtos}/g, prods.join(', ')).replace(/{pix}/g, TEMPLATES.pix);
-      window.open(`https://wa.me/${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
-
-  window.exportarExcelRelatorio = async () => {
-      const snapCli = await getDocs(collection(db, "clientes"));
-      let dados = [];
-      for (let d of snapCli.docs) {
-          const c = d.data();
-          if (c.saldo < -0.01) {
-              const sT = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", d.id), where("tipo", "==", "VENDA")));
-              let pList = []; sT.forEach(t => { if(t.data().metodo === 'FIADO') pList.push(t.data().descricao); });
-              dados.push({ "CLIENTE": c.nome, "TELEFONE": c.telefone, "SALDO DEVEDOR": Math.abs(c.saldo).toFixed(2), "PRODUTOS COMPRADOS": pList.join(' | ') });
-          }
-      }
-      const ws = XLSX.utils.json_to_sheet(dados);
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Cobrança");
-      XLSX.writeFile(wb, "GabyDoces_Auditoria.xlsx");
-  };
-
-  // --- IMPORTAÇÃO EXCEL CORRIGIDA (V26) ---
-  window.importarExcel = async () => {
-    const fileInput = document.getElementById('arquivoExcel');
-    const statusDiv = document.getElementById('statusImport');
-    
-    if(!fileInput.files.length) { alert("Selecione um arquivo Excel!"); return; }
-    
-    statusDiv.innerText = "Carregando produtos e processando...";
-    
-    // 1. Tabela de Preços
-    const snapProds = await getDocs(collection(db, "produtos"));
-    const mapaPrecos = {};
-    snapProds.forEach(d => {
-        mapaPrecos[d.data().nome.toUpperCase().trim()] = d.data().preco;
-    });
-
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-
-    reader.onload = async (e) => {
-        try {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const json = XLSX.utils.sheet_to_json(firstSheet, {header: 1}); // Matriz pura
-
-            statusDiv.innerText = `Lendo ${json.length} linhas...`;
-            
-            // 2. Mapear Clientes (Para não duplicar)
-            const snapExistentes = await getDocs(collection(db, "clientes"));
-            const mapaClientes = {}; 
-            snapExistentes.forEach(d => {
-                mapaClientes[d.data().nome.toUpperCase().trim()] = { id: d.id, saldo: d.data().saldo || 0 };
-            });
-
-            let countVendas = 0;
-            let countNovos = 0;
-
-            // Começa da linha 1 (pula cabeçalho linha 0)
-            for(let i = 1; i < json.length; i++) {
-                let row = json[i];
-                if(!row || row.length < 2) continue;
-
-                // Colunas Fixas (Índices baseados na imagem)
-                let setor = (row[0] || "RUA").toString().toUpperCase(); // Col A (0)
-                let nome = (row[1] || "").toString().toUpperCase().trim(); // Col B (1)
-                let telefone = (row[14] || "").toString().replace(/\D/g, ""); // Col O (14) - Era P antes
-
-                if(!nome) continue;
-
-                // Varrer Pares de Produto: 2/3, 4/5, 6/7, 8/9, 10/11, 12/13
-                let itensVenda = [];
-                let valorTotalLinha = 0;
-
-                // Colunas C, E, G, I, K, M (Índices: 2, 4, 6, 8, 10, 12)
-                for(let k = 2; k <= 12; k += 2) {
-                    let nomeProd = (row[k] || "").toString().toUpperCase().trim();
-                    let qtdRaw = row[k+1]; // Quantidade na coluna seguinte
-                    let qtd = parseFloat(qtdRaw);
-
-                    // Só processa se tiver nome E quantidade válida (maior que 0)
-                    if(nomeProd && !isNaN(qtd) && qtd > 0) {
-                        let precoUnit = mapaPrecos[nomeProd] || 0; // Se não tiver preço, assume 0
-                        let totalItem = precoUnit * qtd;
-                        valorTotalLinha += totalItem;
-                        itensVenda.push(`${qtd}x ${nomeProd}`);
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#fdf2f8', 100: '#fce7f3', 500: '#ec4899', 600: '#db2777', 900: '#831843' }
                     }
                 }
-
-                // --- LÓGICA DE CADASTRO ---
-                let clienteId = null;
-                let saldoAtual = 0;
-
-                if(mapaClientes[nome]) {
-                    // Já existe
-                    clienteId = mapaClientes[nome].id;
-                    saldoAtual = mapaClientes[nome].saldo;
-                } else {
-                    // Criar Novo
-                    const docRef = await addDoc(collection(db, "clientes"), { 
-                        nome: nome, 
-                        setor: setor, 
-                        telefone: telefone || "", 
-                        dia_pagamento: "", 
-                        saldo: 0 
-                    });
-                    clienteId = docRef.id;
-                    mapaClientes[nome] = { id: clienteId, saldo: 0 };
-                    countNovos++;
-                }
-
-                // --- LÓGICA DE VENDA (CORRIGIDA: Salva mesmo se valor for 0, desde que tenha itens) ---
-                if(itensVenda.length > 0) {
-                    const novoSaldo = saldoAtual - valorTotalLinha;
-                    await updateDoc(doc(db, "clientes", clienteId), { 
-                        saldo: novoSaldo,
-                        ultima_venda: new Date().toISOString().split('T')[0]
-                    });
-
-                    await addDoc(collection(db, "transacoes"), {
-                        cliente_id: clienteId,
-                        tipo: 'VENDA',
-                        metodo: 'FIADO',
-                        valor: valorTotalLinha, // Pode ser 0 se não tiver preço cadastrado
-                        descricao: itensVenda.join(', '),
-                        data: new Date().toISOString().split('T')[0],
-                        timestamp: new Date()
-                    });
-                    
-                    mapaClientes[nome].saldo = novoSaldo;
-                    countVendas++;
-                }
             }
-            alert(`Processado!\nNovos Clientes: ${countNovos}\nPedidos Importados: ${countVendas}\n(Se o valor saiu R$ 0,00, cadastre o produto na aba Prod com o NOME EXATO da planilha e importe de novo ou edite o saldo).`);
-            statusDiv.innerText = "";
-            fileInput.value = "";
-            carregarClientes();
-
-        } catch (error) {
-            console.error(error);
-            alert("Erro! Verifique se o arquivo está correto.");
-            statusDiv.innerText = "Erro.";
         }
-    };
-    reader.readAsArrayBuffer(file);
-  };
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
-  // --- CARRINHO ---
-  window.addCarrinho = () => {
-      const s = document.getElementById('selectProdVenda');
-      const q = parseFloat(document.getElementById('qtdProdVenda').value);
-      const n = s.options[s.selectedIndex].getAttribute('data-nome');
-      const p = parseFloat(s.value);
-      if(!n) return;
-      CARRINHO.push({ nome: n, qtd: q, total: p * q });
-      TOTAL_CARRINHO += p * q;
-      atualizarCarrinho();
-  };
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fdf2f8; }
+        .hide { display: none !important; }
+        .anime-fade { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex overflow-hidden">
 
-  window.removerItemCarrinho = (index) => {
-      TOTAL_CARRINHO -= CARRINHO[index].total;
-      CARRINHO.splice(index, 1);
-      atualizarCarrinho();
-  };
+    <aside class="w-64 bg-white border-r border-pink-100 hidden md:flex flex-col shadow-sm z-20">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-brand-600 flex items-center gap-2">
+                <i class="fa-solid fa-candy-cane"></i> Gaby Doces
+            </h1>
+            <p class="text-xs text-slate-400 mt-1 pl-7">Sistema Inteligente V27</p>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-pink-50 text-slate-500 hover:text-brand-600 transition-all active-nav" id="btn-clientes">
+                <i class="fa-solid fa-users w-5"></i> Clientes
+            </button>
+            <button onclick="mudarAba('cobranca')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-pink-50 text-slate-500 hover:text-brand-600 transition-all" id="btn-cobranca">
+                <i class="fa-solid fa-hand-holding-dollar w-5"></i> Cobrança
+            </button>
+            <button onclick="mudarAba('novo')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-pink-50 text-slate-500 hover:text-brand-600 transition-all" id="btn-novo">
+                <i class="fa-solid fa-user-plus w-5"></i> Novo Cliente
+            </button>
+            <button onclick="mudarAba('prod')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-pink-50 text-slate-500 hover:text-brand-600 transition-all" id="btn-prod">
+                <i class="fa-solid fa-box-open w-5"></i> Produtos
+            </button>
+            <button onclick="mudarAba('config')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-pink-50 text-slate-500 hover:text-brand-600 transition-all" id="btn-config">
+                <i class="fa-solid fa-gear w-5"></i> Config
+            </button>
+        </nav>
+    </aside>
 
-  function atualizarCarrinho() {
-      const l = document.getElementById('listaCarrinho');
-      l.innerHTML = '';
-      if (CARRINHO.length === 0) {
-          l.innerHTML = '<li class="list-group-item text-center small text-muted">Vazio</li>';
-      } else {
-          CARRINHO.forEach((i, idx) => {
-              l.innerHTML += `
-                <li class="list-group-item d-flex justify-content-between align-items-center p-1 small border-0 bg-light mb-1 rounded">
-                    <div>${i.qtd}x ${i.nome}</div>
-                    <div>
-                        <span class="me-2 fw-bold text-dark">R$ ${i.total.toFixed(2)}</span>
-                        <button class="btn btn-sm btn-danger py-0 px-2" onclick="removerItemCarrinho(${idx})">x</button>
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <header class="bg-white/80 backdrop-blur border-b border-pink-100 p-4 flex justify-between items-center md:hidden z-10">
+            <h1 class="font-bold text-brand-600"><i class="fa-solid fa-candy-cane"></i> GabyDoces</h1>
+            <button onclick="document.querySelector('aside').classList.toggle('hidden'); document.querySelector('aside').classList.toggle('absolute'); document.querySelector('aside').classList.toggle('h-full');" class="text-slate-500 p-2"><i class="fa-solid fa-bars fa-lg"></i></button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 relative">
+            
+            <section id="tab-clientes" class="anime-fade space-y-6">
+                <div class="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex-1 relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                        <input type="text" id="buscaNome" onkeyup="renderClientes()" placeholder="Buscar cliente..." class="w-full pl-10 pr-4 py-3 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-brand-100 rounded-xl outline-none transition-all">
                     </div>
-                </li>`;
-          });
-      }
-      document.getElementById('totalCarrinho').innerText = `R$ ${TOTAL_CARRINHO.toFixed(2)}`;
-  }
+                    <select id="filtroSetor" onchange="renderClientes()" class="px-4 py-3 bg-slate-50 rounded-xl outline-none border-transparent focus:ring-2 focus:ring-brand-100">
+                        <option value="">Todos os Setores</option>
+                        <option value="IGREJA">Igreja</option><option value="ROLETE">Rolete</option><option value="TABATA">Tabata</option>
+                        <option value="ANDERSON">Anderson</option><option value="BIANCA">Bianca</option><option value="RUA">Rua</option>
+                    </select>
+                </div>
 
-  // --- FUNÇÕES GERAIS ---
-  window.salvarNovoCliente = async () => {
-      const nome = document.getElementById('novoNome').value.toUpperCase();
-      const setor = document.getElementById('novoSetor').value;
-      const tel = document.getElementById('novoTel').value;
-      const dia = document.getElementById('novoDiaPag').value;
-      if(!nome) return;
-      await addDoc(collection(db, "clientes"), { nome, setor, telefone: tel, dia_pagamento: dia, saldo: 0 });
-      alert("Salvo!"); carregarClientes();
-  };
+                <div id="gridClientes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="text-center w-full col-span-3 text-slate-400 py-10">Carregando clientes...</div>
+                </div>
+            </section>
 
-  window.abrirEditarCliente = async (id) => {
-      const s = await getDoc(doc(db, "clientes", id)); const c = s.data();
-      document.getElementById('editId').value = id; document.getElementById('editNome').value = c.nome;
-      document.getElementById('editSetor').value = c.setor; document.getElementById('editTel').value = c.telefone;
-      document.getElementById('editDiaPag').value = c.dia_pagamento || '';
-      new bootstrap.Modal(document.getElementById('modalEditarCliente')).show();
-  };
+            <section id="tab-cobranca" class="hide anime-fade space-y-6">
+                <h2 class="text-2xl font-bold text-slate-700">Painel de Cobrança</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button onclick="renderCobranca('hoje')" class="p-4 bg-blue-50 text-blue-700 rounded-2xl text-left hover:bg-blue-100 transition">
+                        <div class="text-sm font-bold uppercase opacity-70">Vence Hoje</div>
+                        <div class="text-2xl font-black mt-1" id="total-hoje">R$ 0,00</div>
+                    </button>
+                    <button onclick="renderCobranca('avencer')" class="p-4 bg-green-50 text-green-700 rounded-2xl text-left hover:bg-green-100 transition">
+                        <div class="text-sm font-bold uppercase opacity-70">A Vencer</div>
+                        <div class="text-2xl font-black mt-1" id="total-avencer">R$ 0,00</div>
+                    </button>
+                    <button onclick="renderCobranca('atrasados')" class="p-4 bg-red-50 text-red-700 rounded-2xl text-left hover:bg-red-100 transition">
+                        <div class="text-sm font-bold uppercase opacity-70">Atrasados</div>
+                        <div class="text-2xl font-black mt-1" id="total-atrasados">R$ 0,00</div>
+                    </button>
+                </div>
+                <div id="listaCobranca" class="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y">
+                    </div>
+            </section>
 
-  window.salvarEdicaoCliente = async () => {
-      const id = document.getElementById('editId').value;
-      await updateDoc(doc(db, "clientes", id), {
-          nome: document.getElementById('editNome').value.toUpperCase(),
-          setor: document.getElementById('editSetor').value,
-          telefone: document.getElementById('editTel').value,
-          dia_pagamento: document.getElementById('editDiaPag').value
-      });
-      bootstrap.Modal.getInstance(document.getElementById('modalEditarCliente')).hide(); carregarClientes();
-  };
+            <section id="tab-novo" class="hide anime-fade">
+                <div class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-sm border border-brand-100">
+                    <h2 class="text-xl font-bold mb-6 text-brand-600 flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Novo Cadastro</h2>
+                    <div class="space-y-4">
+                        <input type="text" id="novoNome" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-brand-500" placeholder="Nome Completo">
+                        <select id="novoSetor" class="w-full p-3 border rounded-xl outline-none bg-white">
+                            <option value="IGREJA">Setor Igreja</option><option value="ROLETE">Setor Rolete</option>
+                            <option value="TABATA">Setor Tabata</option><option value="RUA">Rua/Outros</option>
+                        </select>
+                        <input type="text" id="novoTel" class="w-full p-3 border rounded-xl outline-none" placeholder="Telefone (WhatsApp)">
+                        <select id="novoDia" class="w-full p-3 border rounded-xl outline-none bg-white">
+                            <option value="">Escolha o Dia de Pagamento...</option>
+                            </select>
+                        <button onclick="salvarNovoCliente()" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-200 transition-all transform active:scale-95">
+                            CADASTRAR
+                        </button>
+                    </div>
+                </div>
+            </section>
 
-  window.verExtrato = async (id) => {
-      new bootstrap.Modal(document.getElementById('modalExtrato')).show();
-      const tb = document.getElementById('tabelaExtrato'); tb.innerHTML = '...';
-      const snap = await getDocs(query(collection(db, "transacoes"), where("cliente_id", "==", id)));
-      let dados = []; snap.forEach(d => dados.push({id: d.id, ...d.data()}));
-      dados.sort((a,b) => b.timestamp - a.timestamp);
-      tb.innerHTML = '';
-      dados.forEach(t => {
-          tb.innerHTML += `<tr><td>${t.data.split('-').reverse().join('/')}</td><td>${t.descricao||t.tipo}</td><td class="text-end">R$ ${t.valor.toFixed(2)}</td><td><button class="btn btn-sm text-danger" onclick="excluirTransacao('${t.id}', '${id}', ${t.valor}, '${t.tipo}')">🗑️</button></td></tr>`;
-      });
-  };
+             <section id="tab-prod" class="hide anime-fade">
+                <div class="max-w-2xl mx-auto space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-brand-100 flex gap-3">
+                        <input type="text" id="prodNome" class="flex-1 p-3 border rounded-xl outline-none" placeholder="Nome do Doce">
+                        <input type="number" id="prodPreco" class="w-24 p-3 border rounded-xl outline-none" placeholder="R$">
+                        <button onclick="addProduto()" class="bg-green-500 text-white px-6 rounded-xl hover:bg-green-600 font-bold">+</button>
+                    </div>
+                    <ul id="listaProdutos" class="space-y-2"></ul>
+                </div>
+            </section>
 
-  async function carregarTemplates() {
-      const s = await getDoc(doc(db, "config", "templates"));
-      if(s.exists()) TEMPLATES = s.data(); 
-      else TEMPLATES = { pix:"16988143766", hoje:"Oi {nome}, vence hoje: {valor}", atrasado:"Oi {nome}, atrasado: {valor}", avencer:"Oi {nome}, vence dia {vencimento}" };
-      document.getElementById('cfgPix').value = TEMPLATES.pix;
-      document.getElementById('msgHoje').value = TEMPLATES.hoje;
-      document.getElementById('msgAtrasado').value = TEMPLATES.atrasado;
-      document.getElementById('msgAvencer').value = TEMPLATES.avencer;
-  }
-  window.salvarTemplates = async () => { 
-      TEMPLATES = { pix:document.getElementById('cfgPix').value, hoje:document.getElementById('msgHoje').value, atrasado:document.getElementById('msgAtrasado').value, avencer:document.getElementById('msgAvencer').value }; 
-      await setDoc(doc(db, "config", "templates"), TEMPLATES); 
-  };
+            <section id="tab-config" class="hide anime-fade">
+                <div class="max-w-2xl mx-auto space-y-6">
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-green-500 text-center">
+                        <i class="fa-solid fa-file-excel text-4xl text-green-600 mb-3"></i>
+                        <h3 class="text-lg font-bold">Importar Planilha de Pedidos</h3>
+                        <p class="text-sm text-slate-400 mb-4">Layout Foto (Colunas A, B + Pares)</p>
+                        <input type="file" id="arquivoExcel" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer" accept=".xlsx, .xls">
+                        <button onclick="importarExcel()" class="mt-4 w-full bg-slate-800 text-white py-2 rounded-lg">PROCESSAR ARQUIVO</button>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm">
+                        <h3 class="font-bold mb-4">Configuração WhatsApp</h3>
+                        <div class="space-y-3">
+                            <input id="cfgPix" class="w-full p-2 border rounded" placeholder="Chave PIX">
+                            <textarea id="msgHoje" class="w-full p-2 border rounded" rows="2" placeholder="Msg Vence Hoje"></textarea>
+                            <textarea id="msgAtrasado" class="w-full p-2 border rounded" rows="2" placeholder="Msg Atrasado"></textarea>
+                            <button onclick="salvarConfig()" class="w-full bg-brand-500 text-white py-2 rounded font-bold">Salvar Textos</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-  window.addProduto = async () => { const n=document.getElementById('prodNome').value.toUpperCase(); const p=parseFloat(document.getElementById('prodPreco').value); if(n&&p) await addDoc(collection(db,"produtos"),{nome:n, preco:p}); carregarProdutos(); };
-  window.carregarProdutos = async () => { const s=document.getElementById('selectProdVenda'); const l=document.getElementById('listaProdutos'); const sn=await getDocs(collection(db,"produtos")); s.innerHTML=''; l.innerHTML=''; sn.forEach(d=>{ const p=d.data(); s.innerHTML+=`<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`; l.innerHTML+=`<li class="list-group-item d-flex justify-content-between"><span>${p.nome}</span><b>R$ ${p.preco.toFixed(2)}</b></li>`; }); };
-  window.abrirVenda = (id, nome, saldo) => { CARRINHO=[]; atualizarCarrinho(); document.getElementById('idClienteVenda').value=id; document.getElementById('tituloVenda').innerText=nome; new bootstrap.Modal(document.getElementById('modalVenda')).show(); };
-  window.finalizarVenda = async () => { const id=document.getElementById('idClienteVenda').value; const tipo=document.querySelector('input[name="tipoVenda"]:checked').value; const data=document.getElementById('dataVenda').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); let saldo=s.data().saldo||0; if(tipo==='FIADO') saldo-=TOTAL_CARRINHO; await updateDoc(ref,{saldo, ultima_venda:data}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'VENDA', metodo:tipo, valor:TOTAL_CARRINHO, descricao:CARRINHO.map(i=>`${i.qtd}x ${i.nome}`).join(','), data, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalVenda')).hide(); carregarClientes(); alert("Venda OK!"); };
-  window.abrirPagamento = (id) => { document.getElementById('idClientePgto').value=id; document.getElementById('dataPgto').valueAsDate=new Date(); new bootstrap.Modal(document.getElementById('modalPagamento')).show(); };
-  window.confirmarPagamento = async () => { const id=document.getElementById('idClientePgto').value; const v=parseFloat(document.getElementById('valorPgto').value); const d=document.getElementById('dataPgto').value; const ref=doc(db,"clientes",id); const s=await getDoc(ref); await updateDoc(ref,{saldo:(s.data().saldo||0)+v}); await addDoc(collection(db,"transacoes"),{cliente_id:id, tipo:'PAGAMENTO', valor:v, data:d, timestamp:new Date()}); bootstrap.Modal.getInstance(document.getElementById('modalPagamento')).hide(); carregarClientes(); alert("Recebido!"); };
-  window.pedirSenha = (cb) => { SENHA_CALLBACK=cb; document.getElementById('inputSenha').value=''; new bootstrap.Modal(document.getElementById('modalSenha')).show(); };
-  window.validarSenha = () => { if(document.getElementById('inputSenha').value==='0309') { bootstrap.Modal.getInstance(document.getElementById('modalSenha')).hide(); if(SENHA_CALLBACK) SENHA_CALLBACK(); } else alert("Senha!"); };
-  window.excluirTransacao = (tid, cid, val, tipo) => { pedirSenha(async () => { const ref=doc(db,"clientes",cid); const s=await getDoc(ref); let sal=s.data().saldo; if(tipo==='VENDA') sal+=val; else sal-=val; await updateDoc(ref,{saldo:sal}); await deleteDoc(doc(db,"transacoes",tid)); carregarClientes(); alert("Removido!"); }); };
-</script>
+        </div>
+    </main>
+
+    <div id="modalVenda" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden anime-fade">
+            <div class="bg-brand-50 p-4 border-b border-brand-100 flex justify-between items-center">
+                <h3 class="font-bold text-brand-900">Venda para <span id="mv-nome"></span></h3>
+                <button onclick="fecharModal('modalVenda')" class="text-brand-900 hover:bg-brand-100 w-8 h-8 rounded-full">✕</button>
+            </div>
+            <div class="p-6">
+                <div class="flex gap-2 mb-4">
+                    <select id="mv-prod" class="flex-1 border p-2 rounded-lg"></select>
+                    <input id="mv-qtd" type="number" value="1" class="w-16 border p-2 rounded-lg text-center">
+                    <button onclick="addCarrinho()" class="bg-brand-500 text-white w-10 rounded-lg">+</button>
+                </div>
+                <div id="mv-lista" class="bg-slate-50 p-2 rounded-lg h-32 overflow-y-auto mb-4 text-sm space-y-1"></div>
+                <div class="flex justify-between font-bold text-xl text-slate-800 mb-6">
+                    <span>Total</span> <span id="mv-total">R$ 0,00</span>
+                </div>
+                <button onclick="finalizarVenda()" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-bold shadow-lg">CONFIRMAR (FIADO)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPgto" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center anime-fade">
+            <h3 class="font-bold text-lg mb-2">Receber Pagamento</h3>
+            <p class="text-sm text-slate-500 mb-6">Quanto <span id="mp-nome"></span> pagou?</p>
+            <input type="number" id="mp-valor" class="text-4xl font-bold text-center w-full border-b-2 border-green-500 focus:outline-none mb-8 text-green-600" placeholder="0,00">
+            <div class="flex gap-3">
+                <button onclick="fecharModal('modalPgto')" class="flex-1 bg-slate-100 py-3 rounded-xl font-bold text-slate-500">Cancelar</button>
+                <button onclick="confirmarPgto()" class="flex-1 bg-green-500 hover:bg-green-600 py-3 rounded-xl font-bold text-white shadow-lg">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG DO FIREBASE (Sua config original)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
+            authDomain: "gabydoces-d0cd1.firebaseapp.com",
+            projectId: "gabydoces-d0cd1",
+            storageBucket: "gabydoces-d0cd1.firebasestorage.app",
+            messagingSenderId: "702910388683",
+            appId: "1:702910388683:web:28facd97365fb586373e4e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // VARIÁVEIS GLOBAIS
+        let CLIENTES = [];
+        let PRODUTOS = [];
+        let CARRINHO = [];
+        let CLIENTE_ATUAL = null;
+        let CONFIG = { pix: "16988143766", hoje: "Oi {nome}, vence hoje: {valor}", atrasado: "Oi {nome}, consta pendencia: {valor}", avencer: "Oi {nome}, vence dia {vencimento}" };
+
+        // INICIALIZAÇÃO
+        window.onload = async () => {
+            // Preenche dias do select
+            const selDia = document.getElementById('novoDia');
+            for(let i=1; i<=31; i++) selDia.innerHTML += `<option value="${i}">Dia ${i}</option>`;
+            
+            await carregarDados();
+        };
+
+        async function carregarDados() {
+            // Carregar Clientes
+            const snapC = await getDocs(collection(db, "clientes"));
+            CLIENTES = [];
+            snapC.forEach(d => CLIENTES.push({id: d.id, ...d.data()}));
+            CLIENTES.sort((a,b) => a.nome.localeCompare(b.nome));
+
+            // Carregar Produtos
+            const snapP = await getDocs(collection(db, "produtos"));
+            PRODUTOS = [];
+            snapP.forEach(d => PRODUTOS.push({id: d.id, ...d.data()}));
+
+            // Carregar Config
+            try {
+                const snapConf = await getDoc(doc(db, "config", "templates"));
+                if(snapConf.exists()) CONFIG = snapConf.data();
+                document.getElementById('cfgPix').value = CONFIG.pix || "";
+                document.getElementById('msgHoje').value = CONFIG.hoje || "";
+                document.getElementById('msgAtrasado').value = CONFIG.atrasado || "";
+            } catch(e) {}
+
+            renderClientes();
+            renderProdutos();
+        }
+
+        // RENDERIZAÇÃO
+        window.renderClientes = () => {
+            const grid = document.getElementById('gridClientes');
+            const busca = document.getElementById('buscaNome').value.toUpperCase();
+            const setor = document.getElementById('filtroSetor').value;
+            grid.innerHTML = '';
+
+            const filtrados = CLIENTES.filter(c => {
+                if(busca && !c.nome.includes(busca)) return false;
+                if(setor && c.setor !== setor) return false;
+                return true;
+            });
+
+            filtrados.forEach(c => {
+                const devendo = c.saldo < -0.01;
+                const venc = calcularVencimento(c.dia_pagamento, c.ultima_venda);
+                const dataVenc = venc ? venc.toLocaleDateString('pt-BR') : '--';
+                
+                grid.innerHTML += `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 ${devendo ? 'border-red-500' : 'border-green-500'} hover:shadow-md transition-all">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-slate-800 truncate pr-2">${c.nome}</h3>
+                        <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded uppercase tracking-wide">${c.setor}</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Venc: ${dataVenc}</p>
+                            <p class="text-2xl font-bold ${devendo ? 'text-red-600' : 'text-green-600'}">R$ ${Math.abs(c.saldo).toFixed(2)}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="abrirPagamento('${c.id}')" class="w-10 h-10 rounded-xl bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-dollar-sign"></i></button>
+                            <button onclick="abrirVenda('${c.id}')" class="w-10 h-10 rounded-xl bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"><i class="fa-solid fa-cart-plus"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        };
+
+        window.renderCobranca = (tipo) => {
+            const lista = document.getElementById('listaCobranca');
+            lista.innerHTML = '';
+            let total = 0;
+
+            const filtrados = CLIENTES.filter(c => {
+                if(c.saldo >= -0.01 || !c.dia_pagamento) return false;
+                const status = obterStatusVenc(c.dia_pagamento, c.ultima_venda);
+                return status === tipo;
+            });
+
+            filtrados.forEach(c => {
+                total += Math.abs(c.saldo);
+                const venc = calcularVencimento(c.dia_pagamento, c.ultima_venda).toLocaleDateString('pt-BR');
+                const zapLink = gerarLinkZap(c, tipo, venc);
+
+                lista.innerHTML += `
+                <div class="p-4 flex justify-between items-center hover:bg-slate-50">
+                    <div>
+                        <div class="font-bold text-slate-700">${c.nome}</div>
+                        <div class="text-xs text-slate-400">Venc: ${venc}</div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="font-bold text-red-600">R$ ${Math.abs(c.saldo).toFixed(2)}</div>
+                        <a href="${zapLink}" target="_blank" class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 shadow-md shadow-green-200"><i class="fa-brands fa-whatsapp"></i></a>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById(`total-${tipo}`).innerText = `R$ ${total.toFixed(2)}`;
+        };
+
+        window.renderProdutos = () => {
+            const ul = document.getElementById('listaProdutos');
+            const sel = document.getElementById('mv-prod');
+            ul.innerHTML = ''; sel.innerHTML = '';
+            
+            PRODUTOS.forEach(p => {
+                ul.innerHTML += `<li class="flex justify-between p-3 bg-white border border-slate-100 rounded-xl mb-2"><span>${p.nome}</span> <b>R$ ${p.preco.toFixed(2)}</b></li>`;
+                sel.innerHTML += `<option value="${p.preco}" data-nome="${p.nome}">${p.nome}</option>`;
+            });
+        };
+
+        // LÓGICA DE NEGÓCIO
+        function calcularVencimento(diaPag, ultimaVenda) {
+            if(!diaPag) return null;
+            let d = ultimaVenda ? new Date(ultimaVenda + 'T00:00:00') : new Date();
+            let dia = parseInt(diaPag);
+            let ano = d.getFullYear(), mes = d.getMonth();
+            if(d.getDate() > dia) mes++;
+            if(mes > 11) { mes = 0; ano++; }
+            return new Date(ano, mes, Math.min(dia, new Date(ano, mes+1, 0).getDate()));
+        }
+
+        function obterStatusVenc(dia, ultVenda) {
+            const v = calcularVencimento(dia, ultVenda); if(!v) return 'nada';
+            v.setHours(0,0,0,0);
+            const hoje = new Date(); hoje.setHours(0,0,0,0);
+            if(v.getTime() === hoje.getTime()) return 'hoje';
+            if(v.getTime() < hoje.getTime()) return 'atrasados';
+            return 'avencer';
+        }
+
+        function gerarLinkZap(c, tipo, dataVenc) {
+            let msg = CONFIG[tipo] || "";
+            msg = msg.replace(/{nome}/g, c.nome)
+                     .replace(/{valor}/g, Math.abs(c.saldo).toFixed(2))
+                     .replace(/{vencimento}/g, dataVenc)
+                     .replace(/{pix}/g, CONFIG.pix);
+            return `https://wa.me/55${c.telefone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}`;
+        }
+
+        // MODAIS E AÇÕES
+        window.mudarAba = (aba) => {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hide'));
+            document.getElementById(`tab-${aba}`).classList.remove('hide');
+            // Estilo Botão
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('bg-pink-50', 'text-brand-600', 'font-bold');
+                b.classList.add('text-slate-500');
+            });
+            const btn = document.getElementById(`btn-${aba}`);
+            if(btn) btn.classList.add('bg-pink-50', 'text-brand-600', 'font-bold');
+            
+            if(aba === 'cobranca') { renderCobranca('hoje'); renderCobranca('avencer'); renderCobranca('atrasados'); }
+        };
+
+        window.abrirVenda = (id) => {
+            CLIENTE_ATUAL = CLIENTES.find(c => c.id === id);
+            document.getElementById('mv-nome').innerText = CLIENTE_ATUAL.nome;
+            CARRINHO = []; atualizarCarrinho();
+            document.getElementById('modalVenda').classList.remove('hidden');
+        };
+
+        window.addCarrinho = () => {
+            const sel = document.getElementById('mv-prod');
+            const nome = sel.options[sel.selectedIndex].getAttribute('data-nome');
+            const preco = parseFloat(sel.value);
+            const qtd = parseFloat(document.getElementById('mv-qtd').value);
+            CARRINHO.push({nome, qtd, total: preco * qtd});
+            atualizarCarrinho();
+        };
+
+        function atualizarCarrinho() {
+            const lista = document.getElementById('mv-lista');
+            let total = 0; lista.innerHTML = '';
+            CARRINHO.forEach(i => {
+                total += i.total;
+                lista.innerHTML += `<div class="flex justify-between border-b border-slate-200 pb-1"><span>${i.qtd}x ${i.nome}</span><span>R$ ${i.total.toFixed(2)}</span></div>`;
+            });
+            document.getElementById('mv-total').innerText = `R$ ${total.toFixed(2)}`;
+        }
+
+        window.finalizarVenda = async () => {
+            if(CARRINHO.length === 0) return;
+            const total = CARRINHO.reduce((acc, i) => acc + i.total, 0);
+            const novoSaldo = (CLIENTE_ATUAL.saldo || 0) - total;
+            
+            await updateDoc(doc(db, "clientes", CLIENTE_ATUAL.id), { saldo: novoSaldo, ultima_venda: new Date().toISOString().split('T')[0] });
+            await addDoc(collection(db, "transacoes"), {
+                cliente_id: CLIENTE_ATUAL.id, tipo: 'VENDA', metodo: 'FIADO', valor: total,
+                descricao: CARRINHO.map(i => `${i.qtd}x ${i.nome}`).join(', '), data: new Date().toISOString().split('T')[0], timestamp: new Date()
+            });
+            
+            fecharModal('modalVenda');
+            carregarDados();
+            alert("Venda Realizada!");
+        };
+
+        window.abrirPagamento = (id) => {
+            CLIENTE_ATUAL = CLIENTES.find(c => c.id === id);
+            document.getElementById('mp-nome').innerText = CLIENTE_ATUAL.nome;
+            document.getElementById('mp-valor').value = '';
+            document.getElementById('modalPgto').classList.remove('hidden');
+        };
+
+        window.confirmarPgto = async () => {
+            const valor = parseFloat(document.getElementById('mp-valor').value);
+            if(!valor) return;
+            const novoSaldo = (CLIENTE_ATUAL.saldo || 0) + valor;
+            
+            await updateDoc(doc(db, "clientes", CLIENTE_ATUAL.id), { saldo: novoSaldo });
+            await addDoc(collection(db, "transacoes"), {
+                cliente_id: CLIENTE_ATUAL.id, tipo: 'PAGAMENTO', valor: valor, data: new Date().toISOString().split('T')[0], timestamp: new Date()
+            });
+            
+            fecharModal('modalPgto');
+            carregarDados();
+        };
+
+        window.fecharModal = (id) => document.getElementById(id).classList.add('hidden');
+
+        window.salvarNovoCliente = async () => {
+            const nome = document.getElementById('novoNome').value.toUpperCase();
+            if(!nome) return;
+            await addDoc(collection(db, "clientes"), {
+                nome, setor: document.getElementById('novoSetor').value,
+                telefone: document.getElementById('novoTel').value,
+                dia_pagamento: document.getElementById('novoDia').value,
+                saldo: 0
+            });
+            document.getElementById('novoNome').value = '';
+            carregarDados();
+            mudarAba('clientes');
+            alert("Cliente cadastrado!");
+        };
+        
+        window.salvarConfig = async () => {
+            await setDoc(doc(db, "config", "templates"), {
+                pix: document.getElementById('cfgPix').value,
+                hoje: document.getElementById('msgHoje').value,
+                atrasado: document.getElementById('msgAtrasado').value
+            });
+            alert("Salvo!");
+        };
+
+        window.addProduto = async () => {
+            const nome = document.getElementById('prodNome').value.toUpperCase();
+            const preco = parseFloat(document.getElementById('prodPreco').value);
+            if(nome && preco) {
+                await addDoc(collection(db, "produtos"), { nome, preco });
+                document.getElementById('prodNome').value = '';
+                carregarDados();
+            }
+        };
+
+        // EXCEL IMPORT (O SEU CÓDIGO)
+        window.importarExcel = async () => {
+            const file = document.getElementById('arquivoExcel').files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const wb = XLSX.read(e.target.result, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
+                
+                // Mapeamento Rápido
+                const mapCli = {}; CLIENTES.forEach(c => mapCli[c.nome] = c);
+                const mapProd = {}; PRODUTOS.forEach(p => mapProd[p.nome] = p.preco);
+                
+                let count = 0;
+
+                for(let i=1; i<json.length; i++) {
+                    const row = json[i];
+                    if(!row || !row[1]) continue;
+                    
+                    const nome = row[1].toString().toUpperCase().trim();
+                    const setor = (row[0]||"RUA").toString().toUpperCase();
+                    const tel = (row[14]||"").toString().replace(/\D/g, "");
+                    
+                    let itens = [], totalLinha = 0;
+                    for(let k=2; k<=12; k+=2) {
+                        const prod = (row[k]||"").toString().toUpperCase().trim();
+                        const qtd = parseFloat(row[k+1]);
+                        if(prod && qtd > 0) {
+                            const preco = mapProd[prod] || 0;
+                            totalLinha += preco * qtd;
+                            itens.push(`${qtd}x ${prod}`);
+                        }
+                    }
+
+                    if(itens.length > 0) {
+                        let id = null, saldo = 0;
+                        if(mapCli[nome]) { id = mapCli[nome].id; saldo = mapCli[nome].saldo; }
+                        else {
+                            const ref = await addDoc(collection(db, "clientes"), {nome, setor, telefone: tel, dia_pagamento: "", saldo: 0});
+                            id = ref.id;
+                        }
+                        
+                        await updateDoc(doc(db, "clientes", id), { saldo: saldo - totalLinha, ultima_venda: new Date().toISOString().split('T')[0] });
+                        await addDoc(collection(db, "transacoes"), {
+                            cliente_id: id, tipo: 'VENDA', metodo: 'FIADO', valor: totalLinha, descricao: itens.join(', '), data: new Date().toISOString().split('T')[0], timestamp: new Date()
+                        });
+                        count++;
+                    }
+                }
+                alert(`Importado! ${count} vendas processadas.`);
+                carregarDados();
+            };
+            reader.readAsArrayBuffer(file);
+        };
+    </script>
 </body>
 </html>
