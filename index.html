@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces V30 (Extrato OK)</title>
+    <title>Gaby Doces V31 (Atualizado)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,7 +11,8 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 50: '#fff1f2', 100: '#ffe4e6', 500: '#ec4899', 600: '#db2777', 900: '#881337' }
+                        // Mudei para Roxo/Rosa para diferenciar da versão antiga
+                        brand: { 50: '#fdf4ff', 100: '#fae8ff', 500: '#d946ef', 600: '#c026d3', 900: '#701a75' }
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-out',
@@ -33,21 +34,21 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #fff1f2; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fdf4ff; }
         .hide { display: none !important; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ec4899; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #c026d3; border-radius: 10px; }
     </style>
 </head>
 <body class="text-slate-800 h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-white border-r border-pink-100 hidden md:flex flex-col shadow-xl z-20">
+    <aside class="w-64 bg-white border-r border-fuchsia-100 hidden md:flex flex-col shadow-xl z-20">
         <div class="p-8">
             <h1 class="text-3xl font-bold text-brand-600 flex items-center gap-2">
-                <i class="fa-solid fa-lollipop"></i> Gaby<span class="text-slate-700">Doces</span>
+                <i class="fa-solid fa-candy-cane"></i> Gaby<span class="text-slate-700">Doces</span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V30</p>
+            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V31</p>
         </div>
         <nav class="flex-1 px-4 space-y-3">
             <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium bg-brand-50 text-brand-600" id="btn-clientes">
@@ -70,8 +71,8 @@
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-gradient-to-br from-brand-50 to-white">
         
-        <header class="bg-white/90 backdrop-blur border-b border-pink-100 p-4 flex justify-between items-center md:hidden z-10 sticky top-0">
-            <h1 class="font-bold text-brand-600 text-xl"><i class="fa-solid fa-lollipop"></i> GabyDoces</h1>
+        <header class="bg-white/90 backdrop-blur border-b border-fuchsia-100 p-4 flex justify-between items-center md:hidden z-10 sticky top-0">
+            <h1 class="font-bold text-brand-600 text-xl"><i class="fa-solid fa-candy-cane"></i> GabyDoces</h1>
             <button onclick="document.querySelector('aside').classList.toggle('hidden'); document.querySelector('aside').classList.toggle('absolute'); document.querySelector('aside').classList.toggle('h-full');" class="text-slate-500 p-2 text-xl"><i class="fa-solid fa-bars"></i></button>
         </header>
 
