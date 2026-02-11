@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaby Doces V29 (Final)</title>
+    <title>Gaby Doces V30 (Extrato OK)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -47,7 +47,7 @@
             <h1 class="text-3xl font-bold text-brand-600 flex items-center gap-2">
                 <i class="fa-solid fa-lollipop"></i> Gaby<span class="text-slate-700">Doces</span>
             </h1>
-            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V29</p>
+            <p class="text-xs text-slate-400 mt-1 font-semibold tracking-wider">SISTEMA V30</p>
         </div>
         <nav class="flex-1 px-4 space-y-3">
             <button onclick="mudarAba('clientes')" class="nav-btn w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-slate-500 hover:bg-brand-50 hover:text-brand-600 transition-all group font-medium bg-brand-50 text-brand-600" id="btn-clientes">
@@ -298,7 +298,7 @@
     </div>
 
     <script>
-        // CONFIG DO FIREBASE (Sua Chave)
+        // CONFIG DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBUFv4jrng5g-0eUT9zjDukZGA46eVH7g0",
             authDomain: "gabydoces-d0cd1.firebaseapp.com",
@@ -606,7 +606,7 @@
             fecharModal('modalPgto'); carregarDados(); mostrarToast("Recebido!");
         };
 
-        // EXTRATO
+        // EXTRATO (CORRIGIDO PARA V30 - EVITA ERRO DE INDEX)
         window.verExtrato = async (id) => {
             const cli = CLIENTES.find(c => c.id === id);
             document.getElementById('ex-nome').innerText = cli.nome;
@@ -615,12 +615,23 @@
             tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Carregando...</td></tr>';
             document.getElementById('modalExtrato').classList.remove('hidden');
 
-            const snap = await db.collection("transacoes").where("cliente_id", "==", id).orderBy("data", "desc").get();
-            tbody.innerHTML = '';
-            if(snap.empty) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Nada encontrado.</td></tr>'; return; }
+            // 1. BUSCA SEM ORDERBY (Para não travar)
+            const snap = await db.collection("transacoes").where("cliente_id", "==", id).get();
+            
+            // 2. ORDENA NO COMPUTADOR
+            let listaTransacoes = [];
+            snap.forEach(doc => listaTransacoes.push(doc.data()));
+            
+            listaTransacoes.sort((a,b) => {
+                const da = new Date(a.data + 'T12:00:00');
+                const db = new Date(b.data + 'T12:00:00');
+                return db - da; // Mais recente primeiro
+            });
 
-            snap.forEach(doc => {
-                const t = doc.data();
+            tbody.innerHTML = '';
+            if(listaTransacoes.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center">Nada encontrado.</td></tr>'; return; }
+
+            listaTransacoes.forEach(t => {
                 const isVenda = t.tipo === 'VENDA';
                 const dataFmt = t.data.split('-').reverse().slice(0,2).join('/');
                 tbody.innerHTML += `
@@ -683,7 +694,6 @@
                 const wb = XLSX.read(e.target.result, {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
                 
-                // Mapeamento
                 const mapCli = {}; CLIENTES.forEach(c => mapCli[c.nome] = c);
                 const mapProd = {}; PRODUTOS.forEach(p => mapProd[p.nome] = p.preco);
                 let count = 0;
