@@ -108,7 +108,10 @@
                 </section>
 
                 <section id="tab-cobranca" class="hide animate-fade-in space-y-8 safe-scroll">
-                    <h2 class="text-3xl font-bold text-brand-800 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-brand-500"></i> Painel Financeiro</h2>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <h2 class="text-3xl font-bold text-brand-800 flex items-center gap-2"><i class="fa-solid fa-chart-pie text-brand-500"></i> Painel Financeiro</h2>
+                        <button onclick="imprimirRelatorioGeralCobranca()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-2xl font-bold shadow-lg text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-print"></i> Imprimir todos os devedores</button>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                         <div onclick="renderCobranca('hoje')" class="cursor-pointer bg-white p-6 rounded-3xl shadow-lg border border-blue-100 transition-all group"><div class="text-blue-400 font-bold uppercase text-xs mb-1">Vence Hoje</div><div class="text-3xl font-bold text-slate-700" id="total-hoje">R$ 0,00</div></div>
                         <div onclick="renderCobranca('avencer')" class="cursor-pointer bg-white p-6 rounded-3xl shadow-lg border border-green-100 transition-all group"><div class="text-green-500 font-bold uppercase text-xs mb-1">A Receber</div><div class="text-3xl font-bold text-slate-700" id="total-avencer">R$ 0,00</div></div>
@@ -255,9 +258,10 @@
                 <button onclick="fecharModal('modalRelatorioDivida')" class="w-9 h-9 rounded-full bg-slate-50">✕</button>
             </div>
             <div class="p-6 overflow-y-auto flex-1">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
                     <div class="bg-red-50 p-4 rounded-2xl"><p class="text-[10px] uppercase font-bold text-red-400">Dívida atual</p><p id="rd-divida" class="text-2xl font-black text-red-500">R$ 0,00</p></div>
                     <div class="bg-slate-50 p-4 rounded-2xl"><p class="text-[10px] uppercase font-bold text-slate-400">Vencimento</p><p id="rd-vencimento" class="text-xl font-black text-slate-600">---</p></div>
+                    <div class="bg-green-50 p-4 rounded-2xl"><p class="text-[10px] uppercase font-bold text-green-500">WhatsApp / Contato</p><p id="rd-telefone" class="text-lg font-black text-green-600">---</p></div>
                 </div>
                 <div class="mb-3">
                     <h4 class="font-bold text-slate-700">Compras que ainda formam esta dívida</h4>
@@ -496,6 +500,15 @@
             return String(valor ?? "").replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
         }
 
+        function formatarTelefoneContato(valor) {
+            const digitos = String(valor || '').replace(/\D/g, '');
+            if(!digitos) return 'Não informado';
+            const n = digitos.startsWith('55') && digitos.length > 11 ? digitos.slice(2) : digitos;
+            if(n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+            if(n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
+            return String(valor || 'Não informado');
+        }
+
         function valorDataTransacao(t) {
             const base = t.data ? new Date(t.data + 'T12:00:00').getTime() : 0;
             let ts = 0;
@@ -579,6 +592,7 @@
             document.getElementById('rd-divida').innerText = `R$ ${Math.abs(Number(cliente.saldo || 0)).toFixed(2)}`;
             const vencData = calcularVencimento(cliente.dia_pagamento, cliente.ultima_venda);
             document.getElementById('rd-vencimento').innerText = vencData ? vencData.toLocaleDateString('pt-BR') : 'Sem dia fixo';
+            document.getElementById('rd-telefone').innerText = formatarTelefoneContato(cliente.telefone);
             const divItens = document.getElementById('rd-itens');
             divItens.innerHTML = `<div class="p-6 text-center text-slate-400 font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Montando dívida detalhada...</div>`;
             document.getElementById('modalRelatorioDivida').classList.remove('hidden');
@@ -586,7 +600,7 @@
             try {
                 const itens = await montarDividaDetalhada(cliente);
                 RELATORIO_ATUAL = {
-                    cliente: { nome: cliente.nome, saldo: Math.abs(Number(cliente.saldo || 0)), vencimento: vencData ? vencData.toLocaleDateString('pt-BR') : 'Sem dia fixo' },
+                    cliente: { nome: cliente.nome, telefone: formatarTelefoneContato(cliente.telefone), saldo: Math.abs(Number(cliente.saldo || 0)), vencimento: vencData ? vencData.toLocaleDateString('pt-BR') : 'Sem dia fixo' },
                     itens
                 };
 
@@ -651,10 +665,11 @@
                     @media print{body{margin:12mm}.no-print{display:none}}
                 </style></head><body>
                 <h1>Gaby Doces — Relatório de Dívida</h1>
-                <div class="sub">Cliente: <b>${escaparHtml(r.cliente.nome)}</b> • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>
+                <div class="sub">Cliente: <b>${escaparHtml(r.cliente.nome)}</b> • WhatsApp/Contato: <b>${escaparHtml(r.cliente.telefone)}</b> • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>
                 <div class="resumo">
                     <div class="box"><div class="label">Dívida atual</div><div class="valorGrande">R$ ${Number(r.cliente.saldo).toFixed(2)}</div></div>
                     <div class="box"><div class="label">Vencimento</div><div class="valorGrande">${escaparHtml(r.cliente.vencimento)}</div></div>
+                    <div class="box"><div class="label">WhatsApp / Contato</div><div class="valorGrande" style="font-size:17px">${escaparHtml(r.cliente.telefone)}</div></div>
                 </div>
                 <h2 style="font-size:16px;margin-bottom:4px">Compras que ainda formam a dívida</h2>
                 <div style="font-size:11px;color:#777">Pagamentos abatidos das compras mais antigas primeiro.</div>
@@ -663,6 +678,94 @@
                 <script>window.onload=()=>{window.print();}<\/script>
                 </body></html>`);
             w.document.close();
+        };
+
+        window.imprimirRelatorioGeralCobranca = async () => {
+            const devedores = CLIENTES
+                .filter(c => Number(c.saldo || 0) < -0.01)
+                .sort((a,b) => String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'));
+
+            if(devedores.length === 0) {
+                alert('Não há clientes com dívida para imprimir.');
+                return;
+            }
+
+            const w = window.open('', '_blank', 'width=1100,height=800');
+            if(!w) {
+                alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site e tente novamente.');
+                return;
+            }
+
+            w.document.write(`<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><title>Relatório Geral de Cobrança</title>
+                <style>body{font-family:Arial,sans-serif;color:#222;margin:34px}.loading{padding:40px;text-align:center;font-weight:bold;color:#666}</style>
+                </head><body><div class="loading">Montando relatório geral de cobrança...</div></body></html>`);
+            w.document.close();
+
+            try {
+                const dados = [];
+                let totalGeral = 0;
+
+                for(const cliente of devedores) {
+                    const itens = await montarDividaDetalhada(cliente);
+                    const saldo = Math.abs(Number(cliente.saldo || 0));
+                    totalGeral += saldo;
+                    const vencData = calcularVencimento(cliente.dia_pagamento, cliente.ultima_venda);
+                    dados.push({
+                        nome: cliente.nome || '',
+                        telefone: formatarTelefoneContato(cliente.telefone),
+                        saldo,
+                        vencimento: vencData ? vencData.toLocaleDateString('pt-BR') : 'Sem dia fixo',
+                        itens
+                    });
+                }
+
+                const linhas = dados.map((c, idx) => {
+                    const compras = c.itens.length
+                        ? c.itens.map(item => {
+                            const data = item.data ? item.data.split('-').reverse().join('/') : 'Anterior';
+                            return `<div class="compra"><b>${escaparHtml(data)}</b> — ${escaparHtml(item.descricao)} <span>R$ ${Number(item.restante).toFixed(2)}</span></div>`;
+                        }).join('')
+                        : '<div class="compra">Sem detalhamento de compra no histórico.</div>';
+
+                    return `<tr>
+                        <td class="numero">${idx + 1}</td>
+                        <td><b>${escaparHtml(c.nome)}</b><div class="venc">Vencimento: ${escaparHtml(c.vencimento)}</div></td>
+                        <td class="fone">${escaparHtml(c.telefone)}</td>
+                        <td>${compras}</td>
+                        <td class="valor">R$ ${Number(c.saldo).toFixed(2)}</td>
+                    </tr>`;
+                }).join('');
+
+                w.document.open();
+                w.document.write(`<!DOCTYPE html><html lang="pt-br"><head><meta charset="UTF-8"><title>Relatório Geral de Cobrança</title>
+                    <style>
+                        body{font-family:Arial,sans-serif;color:#222;margin:28px}
+                        h1{font-size:22px;margin:0 0 4px}.sub{color:#666;font-size:12px;margin-bottom:18px}
+                        .resumo{display:flex;gap:18px;margin:14px 0 22px}.box{border:1px solid #ddd;border-radius:10px;padding:10px 14px;min-width:170px}
+                        .label{font-size:10px;text-transform:uppercase;color:#777;font-weight:bold}.grande{font-size:20px;font-weight:bold;margin-top:3px}
+                        table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border-bottom:1px solid #ddd;padding:9px 7px;text-align:left;font-size:11px;vertical-align:top}
+                        th{background:#f3f3f3;text-transform:uppercase;font-size:10px}.numero{width:28px;text-align:center}.fone{width:125px}.valor{width:95px;text-align:right;font-weight:bold;white-space:nowrap}.venc{font-size:9px;color:#777;margin-top:3px}
+                        .compra{margin-bottom:4px;line-height:1.35}.compra span{float:right;font-weight:bold;white-space:nowrap;margin-left:8px}
+                        .rodape{margin-top:22px;font-size:9px;color:#777}
+                        @media print{body{margin:10mm}thead{display:table-header-group}tr{page-break-inside:avoid}}
+                    </style></head><body>
+                    <h1>Gaby Doces — Relatório Geral de Cobrança</h1>
+                    <div class="sub">Clientes com dívida • Emitido em ${new Date().toLocaleDateString('pt-BR')}</div>
+                    <div class="resumo">
+                        <div class="box"><div class="label">Clientes devedores</div><div class="grande">${dados.length}</div></div>
+                        <div class="box"><div class="label">Total a receber</div><div class="grande">R$ ${totalGeral.toFixed(2)}</div></div>
+                    </div>
+                    <table><thead><tr><th class="numero">#</th><th>Cliente</th><th class="fone">Telefone / WhatsApp</th><th>O que comprou e ainda está em aberto</th><th class="valor">Dívida</th></tr></thead><tbody>${linhas}</tbody></table>
+                    <div class="rodape">Relatório gerado pelo Gaby Doces Gestão. Os pagamentos são abatidos das compras mais antigas primeiro; o total de cada cliente corresponde ao saldo atual do cadastro.</div>
+                    <script>window.onload=()=>{window.print();}<\/script>
+                    </body></html>`);
+                w.document.close();
+            } catch(e) {
+                console.error(e);
+                w.document.open();
+                w.document.write('<!DOCTYPE html><html lang="pt-br"><body style="font-family:Arial;padding:30px"><h2>Não foi possível montar o relatório geral.</h2><p>Feche esta janela e tente novamente.</p></body></html>');
+                w.document.close();
+            }
         };
 
         function disparaConfete() { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
